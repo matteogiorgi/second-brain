@@ -18,11 +18,13 @@ Your job is to organise and query it following the rules below.
 - `journal/`: daily notes, `YYYY-MM-DD.md`.
 - `archive/`: retired notes, in the same subfolder they came from
   (`archive/projects/...`); `archive/inbox/` for original captures
-  already triaged. To retire a note, move it keeping its subfolder, then
+  already triaged; `archive/answers/` for saved answers already
+  distilled. To retire a note, move it keeping its subfolder, then
   update its relative links and those of the notes that cite it.
 - `workflows/`: procedures to run on request.
-- `answers/`: answers from the `ask` workflow, saved on request and
-  ignored by git. They are not notes: do not search them or link them.
+- `answers/`: answers from the `ask` workflow, saved on request. They
+  are not notes: never link them from a note, and search them only when
+  a workflow says so.
 - `bin/`: helper scripts (`capture`, `links`). You may run them, not
   edit them.
 - `editors/`, `CLAUDE.md`, `.claude/` and other tool configuration
@@ -33,9 +35,10 @@ Your job is to organise and query it following the rules below.
 The full reference, if present, is `notes/note-format.md`; in short:
 
 - File names: lowercase, kebab-case, ASCII only, `.md` extension.
-- YAML frontmatter is required, except in `inbox/` and
-  `archive/inbox/`: `title`, `tags` (a list, lowercase, kebab-case,
-  ASCII), `created` (YYYY-MM-DD).
+- YAML frontmatter is required in every note: `title`, `tags` (a list,
+  lowercase, kebab-case, ASCII), `created` (YYYY-MM-DD). Raw captures
+  (`inbox/`, `archive/inbox/`) and saved answers (`answers/`,
+  `archive/answers/`) are not notes and have none.
   Optional: `updated`, `source`. No other fields.
 - `source`: when the content comes from a source (book, article,
   lecture, a file the user gave you), describe it so it can be found
@@ -60,8 +63,9 @@ The full reference, if present, is `notes/note-format.md`; in short:
   their content goes into notes, the originals stay outside.
 - Never edit tool configuration files unless explicitly asked.
 - Never commit: leave the changes to be reviewed with `git diff`.
-- Never invent content: notes report what is in the captures or what
-  the user asked you to write.
+- Never invent content: notes report what is in the captures, what the
+  user confirmed from a saved answer, or what the user asked you to
+  write.
 - When in doubt about where a note goes, what to call it or whether to
   merge it with another, ask instead of deciding.
 
@@ -70,6 +74,9 @@ The full reference, if present, is `notes/note-format.md`; in short:
 When asked to run a workflow, read the matching file and follow it.
 
 - `workflows/triage.md`: turns the captures in `inbox/` into real notes.
-- `workflows/ask.md`: answers a question using only the notes.
+- `workflows/ask.md`: answers a question using the notes (and, on
+  request, the saved answers).
 - `workflows/connect.md`: finds missing links, orphan notes and broken
   links.
+- `workflows/distill.md`: brings into the notes what saved answers add
+  to them.

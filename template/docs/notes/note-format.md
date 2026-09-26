@@ -30,8 +30,9 @@ changing them later means rewriting the archive.
 
 ## Frontmatter
 
-Every note starts with a YAML block, except raw captures in `inbox/`
-and `archive/inbox/`:
+Every note starts with a YAML block. Raw captures (`inbox/`,
+`archive/inbox/`) and saved answers (`answers/`, `archive/answers/`)
+are not notes and have none:
 
 ```yaml
 ---

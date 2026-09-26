@@ -41,9 +41,10 @@ brain/
 ├── areas/             # ongoing responsibilities (study, career, this system)
 ├── journal/           # daily notes, YYYY-MM-DD.md
 ├── archive/           # retired notes: nothing is deleted, only moved
-│   └── inbox/         # original captures, already triaged
+│   ├── inbox/         # original captures, already triaged
+│   └── answers/       # saved answers, already distilled
 ├── workflows/         # procedures in prose, for people and agents
-├── answers/           # saved answers from ask, ignored by git
+├── answers/           # saved answers from ask, not notes
 ├── bin/               # POSIX scripts: capture, links
 ├── editors/           # editor adapters (vim/, ...)
 └── .claude/
@@ -78,7 +79,7 @@ adapters), make `bin/` executable and run `git init`.
 2. **Triage** once a day with the `triage` workflow: the agent assigns
    frontmatter, name, destination and links.
 3. **Ask** with the `ask` workflow when I need to find something: the
-   agent answers from the notes only and cites the files.
+   agent answers from the notes and cites the files.
 4. **Review** with `git diff` what the agent changed, then commit.
 
 ## Maintenance
@@ -87,8 +88,9 @@ adapters), make `bin/` executable and run `git init`.
 find missing links.
 
 **Monthly**: retire notes that are no longer needed to `archive/`;
-clean up tags (merge synonyms, drop those used only once); reread
-`AGENTS.md` and fix the instructions the agent misread during the month.
+run `distill` on the saved answers; clean up tags (merge synonyms, drop
+those used only once); reread `AGENTS.md` and fix the instructions the
+agent misread during the month.
 
 **When I change editor**: I write a new adapter in `editors/`. Nothing
 in the core must change; if I have to touch the core, I designed it

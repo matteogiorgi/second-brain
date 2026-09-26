@@ -100,9 +100,10 @@ brain/
 ├── areas/             # ongoing responsibilities (study, career, this system)
 ├── journal/           # daily notes, YYYY-MM-DD.md
 ├── archive/           # retired notes: nothing is deleted, only moved
-│   └── inbox/         # original captures, already triaged
+│   ├── inbox/         # original captures, already triaged
+│   └── answers/       # saved answers, already distilled
 ├── workflows/         # procedures in prose, for people and agents
-├── answers/           # saved answers from ask, ignored by git
+├── answers/           # saved answers from ask, not notes
 ├── bin/               # POSIX scripts (capture, links)
 ├── editors/           # editor adapters (vim/, ...)
 └── .claude/
@@ -112,9 +113,9 @@ brain/
 The `projects/` / `areas/` / `archive/` split is a simplified version of Tiago Forte's *PARA* method: "resources" become `notes/`, and `inbox/` and `journal/` are added.
 
 - **`notes/` is flat**, with no subfolders by topic. Structure comes from tags and links: an idea can belong to several topics, and a note that never moves never breaks the links pointing at it.
-- **`archive/inbox/`** receives captures once triage has turned them into notes, so you can check that nothing was lost.
+- **`archive/inbox/`** receives captures once triage has turned them into notes, so you can check that nothing was lost. **`archive/answers/`** does the same for saved answers once `distill` has brought their new content into notes.
 - **The rest of `archive/`** holds *retired* notes, such as a finished project or a superseded note. A retired note keeps its original folder (`projects/exam.md` → `archive/projects/exam.md`). Moving it changes relative paths, so its own links and the links pointing to it must be updated. Links from active notes that you forget to update show up as broken links in `connect`.
-- **`answers/`** holds `ask` answers you asked to save. They are disposable, so `.gitignore` excludes them.
+- **`answers/`** holds `ask` answers you asked to save. They are not notes: `ask` searches them only on request (§6.2), and notes never link to them. They are versioned like everything else.
 
 
 
@@ -136,12 +137,12 @@ second-brain/init.sh --claude --vim ~/brain
 
 The templates in `template/` are split into layers that mirror the core/adapter split:
 
-| Layer    | Option     | Creates                                                                                                 |
-|----------|------------|---------------------------------------------------------------------------------------------------------|
-| `core`   | always     | the folders, `AGENTS.md`, `.gitignore`, `workflows/` (triage, ask, connect), `bin/capture`, `bin/links` |
-| `claude` | `--claude` | `CLAUDE.md` and `.claude/commands/` (`/triage`, `/ask`, `/connect`)                                     |
-| `vim`    | `--vim`    | `editors/vim/brain.vim`                                                                                 |
-| `docs`   | `--docs`   | `areas/second-brain.md` and four notes in `notes/` documenting the system                               |
+| Layer    | Option     | Creates                                                                                                          |
+|----------|------------|------------------------------------------------------------------------------------------------------------------|
+| `core`   | always     | the folders, `AGENTS.md`, `.gitignore`, `workflows/` (triage, ask, connect, distill), `bin/capture`, `bin/links` |
+| `claude` | `--claude` | `CLAUDE.md` and `.claude/commands/` (`/triage`, `/ask`, `/ask-save`, `/ask-all`, `/connect`, `/distill`)         |
+| `vim`    | `--vim`    | `editors/vim/brain.vim`                                                                                          |
+| `docs`   | `--docs`   | `areas/second-brain.md` and four notes in `notes/` documenting the system                                        |
 
 `--all` enables every layer; `init.sh -h` prints the help. The destination folder is required and can be anywhere.
 
@@ -211,7 +212,7 @@ The format is the most rigid part of the core: changing it later means rewriting
 
 **File names.** UTF-8, LF line endings, `.md`. Lowercase **ASCII kebab-case** (`compound-poisson-processes.md`), descriptive and **stable**, because every rename breaks links. Two exceptions have fixed-format names: `journal/YYYY-MM-DD.md`, and the timestamped files in `inbox/`.
 
-**Frontmatter.** Every note except raw captures starts with three required fields:
+**Frontmatter.** Every note starts with three required fields (raw captures and saved answers are not notes, and have none):
 
 ```yaml
 ---
@@ -266,29 +267,30 @@ Every workflow has the same sections: **Purpose, Input, Steps, Output, Constrain
 **Adapting an agent** takes at most two things:
 
 - **A startup file**, only if the agent does not read `AGENTS.md` natively. For Claude Code, the whole `CLAUDE.md` is `@AGENTS.md`. For agents without imports, one sentence: "Read `AGENTS.md` and follow it."
-- **Commands**, one per workflow, one or two lines each. `.claude/commands/ask.md` becomes `/ask`:
+- **Commands**, one or two lines each, that point to a workflow. `.claude/commands/ask.md` becomes `/ask`:
 
   ```markdown
   Run the workflow described in workflows/ask.md.
   Question: $ARGUMENTS
   ```
 
-  Commands are a convenience. Without them, you just ask the agent to run the workflow by name.
+  A command can also preset an option of its workflow: `/ask-save` and `/ask-all` run the same `workflows/ask.md`, adding "and save the answer" or "including saved answers". Commands are a convenience. Without them, you just ask the agent to run the workflow by name.
 
 To test agnosticism, open a session with a different agent, or with no adapters, and ask it to run a workflow after reading only `AGENTS.md`. The result should be comparable.
 
 
 
 
-## 6. The three workflows
+## 6. The workflows
 
-Start with three workflows, not twenty: one brings ideas in, one gets them out, one keeps the link graph healthy. The full texts are in [`template/core/workflows/`](https://github.com/matteogiorgi/second-brain/tree/main/template/core/workflows).
+Start with three workflows, not twenty: one brings ideas in, one gets them out, one keeps the link graph healthy. A fourth, `distill`, is only needed once you save answers. The full texts are in [`template/core/workflows/`](https://github.com/matteogiorgi/second-brain/tree/main/template/core/workflows).
 
 | Workflow  | Purpose                                     | Edits files                      | Asks for confirmation          |
 |-----------|---------------------------------------------|----------------------------------|--------------------------------|
 | `triage`  | turn `inbox/` into real notes               | yes                              | no, but asks about ambiguities |
 | `ask`     | answer a question using the notes as source | no (only `answers/`, on request) | no                             |
 | `connect` | broken links, orphan notes, missing links   | yes, after confirmation          | always, before editing         |
+| `distill` | bring what saved answers add into the notes | yes, after confirmation          | always, before editing         |
 
 
 ### 6.1 Triage
@@ -314,11 +316,23 @@ The first step is the one that is easy to miss: **read every capture before touc
 
 You ask "what did I write about compound Poisson processes?". The agent extracts the key concepts and their synonyms, searches `notes/`, `projects/`, `areas/` and `journal/` (and `archive/` only if needed), reads the relevant notes in full, follows their links **one level deep**, and answers. Three choices make it trustworthy:
 
-- it is **read-only**;
+- it is **read-only**, apart from writing the answer to `answers/` when you ask to save it;
 - it **separates** what the notes say from the agent's general knowledge, which may appear only in a clearly marked part;
 - it **cites** every claim with the path of its note, and points out **gaps** and **contradictions**, which are often the most useful part of the answer.
 
-Many chat panels do not render math, so in chat `ask` puts formulas in `latex` code blocks and diagrams in `mermaid` blocks. If you want everything rendered, ask it to **save the answer**: it writes `answers/YYYY-MM-DD-topic.md`, which you can open in VS Code's preview (Mermaid diagrams need an extension) or convert with pandoc. Answers are disposable; anything worth keeping is captured into `inbox/` like any other capture.
+The chat answer may be read in a terminal, where nothing is rendered: math is written in Unicode plain text (`P(X = k) = λᵏ e^(−λ) / k!`), with the LaTeX source added only when Unicode cannot express a formula clearly, and diagrams go in `mermaid` blocks.
+
+Three commands run the same workflow:
+
+| Command     | Sources                 | Saves the answer |
+|-------------|-------------------------|------------------|
+| `/ask`      | notes                   | only if you ask  |
+| `/ask-save` | notes                   | always           |
+| `/ask-all`  | notes and saved answers | only if you ask  |
+
+A saved answer goes to `answers/YYYY-MM-DD-topic.md`, in plain Markdown with LaTeX math, to open in VS Code's preview (Mermaid diagrams need an extension) or convert with pandoc. It keeps its citations, and it is versioned and reviewed with `git diff` like any other change.
+
+Saved answers are worth reusing because they can hold a reworking the notes lack: a connection between notes, a clearer explanation, a worked example. `/ask-all` treats them as a **secondary source**: it cites them as saved answers, never lets them override a note, and ignores their general-knowledge part, so the agent never cites its own guesses. It does not save by default: an answer built on saved answers, saved in turn, would feed the next `/ask-all` with a reworking of a reworking. What deserves to last goes into the notes through `distill` (§6.4).
 
 
 ### 6.3 Connect
@@ -329,7 +343,7 @@ Many chat panels do not render math, so in chat `ask` puts formulas in `latex` c
 - **orphan notes**, which no other note links to. `journal/` is exempt, since daily notes are entry points by nature, though links *from* the journal count. Links from `archive/` do not count;
 - **missing links** between notes about the same concepts. The bar is high: propose a link only if one note really helps to understand the other. A shared tag is not enough.
 
-It is the most cautious of the three workflows. It presents its findings and **waits for confirmation**; it proposes fixes for broken links without applying them, and adds confirmed links **in both directions**. The first two checks are mechanical, so [`bin/links`](https://github.com/matteogiorgi/second-brain/blob/main/template/core/bin/links) runs them over the whole archive without an agent, ignoring links inside code blocks:
+It is cautious: it presents its findings and **waits for confirmation**; it proposes fixes for broken links without applying them, and adds confirmed links **in both directions**. The first two checks are mechanical, so [`bin/links`](https://github.com/matteogiorgi/second-brain/blob/main/template/core/bin/links) runs them over the whole archive without an agent, ignoring links inside code blocks:
 
 ```
 broken: notes/lonely.md -> ../notes/missing.md
@@ -337,6 +351,19 @@ orphan: notes/lonely.md
 ```
 
 The third check needs judgement, and that is where the agent earns its place.
+
+
+### 6.4 Distill
+
+A saved answer has a short life: `/ask-save` writes it to `answers/`, `/ask-all` reads it, and `distill` brings what it adds into the notes, then archives it. `distill` reads each answer (all of `answers/`, or the ones you name) together with the notes it cites, and sorts its content into three kinds:
+
+- **restated**: what the cited notes already say. It is discarded;
+- **reworked**: what the answer builds from the notes without being in any of them, such as a connection between notes, a clearer explanation, a worked example. These are the candidates;
+- **general knowledge**: the part marked as such. It becomes a candidate only if you confirm it.
+
+For each candidate it proposes a destination, as triage does: an existing note, usually one the answer cites, or a new one; a connection becomes a link in both directions. Like `connect`, it **waits for confirmation**, because the content was written by the agent, not by you. Citations of saved answers are not carried over, since notes never link to them. Finally each distilled answer moves to `archive/answers/`, so `/ask-all` no longer uses it.
+
+Triage cannot do this job: it would treat the answer as your capture, duplicating what the notes already say and adopting the agent's general knowledge as yours.
 
 
 
@@ -398,7 +425,7 @@ The daily cycle has four steps, and only the middle two need an agent:
 
 1. **Capture** without thinking: `capture "idea"`, or any new file in `inbox/`.
 2. **Triage** once a day: the agent assigns frontmatter, name, destination and links, and asks about ambiguous captures.
-3. **Ask** whenever you need to find something: the agent answers from the notes only, citing files.
+3. **Ask** whenever you need to find something: the agent answers from the notes, citing files.
 4. **Review** what the agent changed, then commit.
 
 ```mermaid
@@ -437,13 +464,13 @@ git add -A && git commit -m "triage: 4 captures, 2 new notes"
 
 The review step is not bureaucracy. It is where you see **where the agent goes wrong**, and that is what drives fixes to `AGENTS.md` and the workflows: the system improves through review, not through upfront design. To undo, `git restore <file>` (or `git restore .`) reverts tracked files. New notes are untracked, so `git restore` leaves them alone: `git clean -n` lists them, and you delete the unwanted ones by hand. Avoid `git clean -f`, which would also delete captures not yet committed.
 
-| When                 | What                                                                                          |
-|----------------------|-----------------------------------------------------------------------------------------------|
-| daily                | `triage`; review the diff; commit                                                             |
-| weekly               | inbox to zero; skim `git log --since='1 week ago'`; run `connect`                             |
-| monthly              | retire notes to `archive/`; clean up tags (merge synonyms, drop one-offs); reread `AGENTS.md` |
-| when changing editor | write a new adapter in `editors/` or your dotfiles                                            |
-| when changing agent  | write its startup file (pointing to `AGENTS.md`) and its commands (pointing to workflows)     |
+| When                 | What                                                                                                                       |
+|----------------------|----------------------------------------------------------------------------------------------------------------------------|
+| daily                | `triage`; review the diff; commit                                                                                          |
+| weekly               | inbox to zero; skim `git log --since='1 week ago'`; run `connect`                                                          |
+| monthly              | retire notes to `archive/`; `distill` the saved answers; clean up tags (merge synonyms, drop one-offs); reread `AGENTS.md` |
+| when changing editor | write a new adapter in `editors/` or your dotfiles                                                                         |
+| when changing agent  | write its startup file (pointing to `AGENTS.md`) and its commands (pointing to workflows)                                  |
 
 Two warning signs point to a design problem:
 
@@ -457,21 +484,23 @@ Every instruction the agent misread during the month was badly written. Rewrite 
 
 ## 10. Design choices at a glance
 
-| Choice                                  | Rejected alternative               | Reason                                                     |
-|-----------------------------------------|------------------------------------|------------------------------------------------------------|
-| relative links with extension           | `[[wikilinks]]`                    | plain Markdown: GitHub, pandoc and `gf` understand it      |
-| ASCII kebab-case names                  | free names with spaces and accents | safe in any shell, identical on every file system          |
-| flat `notes/`                           | subfolders by topic                | ideas span topics; notes that never move never break links |
-| three frontmatter fields                | rich metadata                      | every field must be maintained across the whole archive    |
-| 72-column wrapping                      | one sentence per line              | readable as text; slightly noisier diffs                   |
-| `AGENTS.md` + `workflows/`              | `CLAUDE.md` + `.claude/commands/`  | instructions are core, not owned by one agent              |
-| workflows in prose                      | structured configuration           | every agent understands prose, and so does a person        |
-| the agent never commits                 | automatic commits                  | reviewing the diff is how the system improves              |
-| the agent asks when in doubt            | the agent decides                  | misplaced notes are the hardest to find                    |
-| capture as a contract on `inbox/`       | capture inside an app              | new entry points without touching anything else            |
-| POSIX shell scripts                     | Python, Node, ...                  | nothing to install, and they will still run in ten years   |
-| binary sources outside the archive      | PDFs and images in the repo        | only text in the core; git handles binaries badly          |
-| saved answers in `answers/`, not in git | saved answers in `inbox/`          | disposable; anything worth keeping gets captured           |
+| Choice                              | Rejected alternative               | Reason                                                     |
+|-------------------------------------|------------------------------------|------------------------------------------------------------|
+| relative links with extension       | `[[wikilinks]]`                    | plain Markdown: GitHub, pandoc and `gf` understand it      |
+| ASCII kebab-case names              | free names with spaces and accents | safe in any shell, identical on every file system          |
+| flat `notes/`                       | subfolders by topic                | ideas span topics; notes that never move never break links |
+| three frontmatter fields            | rich metadata                      | every field must be maintained across the whole archive    |
+| 72-column wrapping                  | one sentence per line              | readable as text; slightly noisier diffs                   |
+| `AGENTS.md` + `workflows/`          | `CLAUDE.md` + `.claude/commands/`  | instructions are core, not owned by one agent              |
+| workflows in prose                  | structured configuration           | every agent understands prose, and so does a person        |
+| the agent never commits             | automatic commits                  | reviewing the diff is how the system improves              |
+| the agent asks when in doubt        | the agent decides                  | misplaced notes are the hardest to find                    |
+| capture as a contract on `inbox/`   | capture inside an app              | new entry points without touching anything else            |
+| POSIX shell scripts                 | Python, Node, ...                  | nothing to install, and they will still run in ten years   |
+| binary sources outside the archive  | PDFs and images in the repo        | only text in the core; git handles binaries badly          |
+| saved answers as a secondary source | answers discarded, or in `inbox/`  | used only on request (`/ask-all`), never overriding notes  |
+| a `distill` workflow for answers    | answers moved to `inbox/`          | triage would duplicate notes and adopt the agent's guesses |
+| Unicode math in chat answers        | LaTeX in chat answers              | readable in a terminal; notes keep LaTeX                   |
 
 The reason behind all of them is the same. Tools change faster than ideas, and AI agents change every few months, while plain text and git last for decades. Separating core and adapters keeps what you have built up (notes, conventions, procedures) independent of whichever tool is in fashion.
 
