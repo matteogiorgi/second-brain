@@ -1,1 +1,1 @@
-Esegui il workflow descritto in workflows/triage.md.
+Run the workflow described in workflows/triage.md.

@@ -1,54 +1,52 @@
 # Ask
 
-## Scopo
+## Purpose
 
-Rispondere a una domanda usando l'archivio come fonte, così da ritrovare
-ciò che ho già scritto invece di ricostruirlo da zero.
+Answer a question using the archive as the source, so that what the
+user has already written is found again instead of rebuilt from
+scratch.
 
 ## Input
 
-La domanda dell'utente.
+The user's question.
 
-## Passi
+## Steps
 
-1. Individua i concetti chiave della domanda e i loro sinonimi, anche in
-   inglese se il termine tecnico è inglese.
-2. Cerca in `notes/`, `projects/`, `areas/` e `journal/`: nei titoli,
-   nei tag e nel testo. Non cercare in `archive/` a meno che la domanda
-   non lo richieda o che il resto non basti.
-3. Leggi le note rilevanti per intero e segui i loro collegamenti per un
-   livello, per raccogliere il contesto.
-4. Componi la risposta a partire da ciò che dicono le note.
-5. Se le note non bastano a rispondere, dillo esplicitamente. Puoi
-   integrare con conoscenze generali solo in una parte separata e
-   dichiarata come tale.
+1. Identify the key concepts of the question and their synonyms.
+2. Search `notes/`, `projects/`, `areas/` and `journal/`: titles, tags
+   and text. Do not search `archive/` unless the question calls for it
+   or the rest is not enough.
+3. Read the relevant notes in full and follow their links one level
+   deep, to gather context.
+4. Build the answer from what the notes say.
+5. If the notes are not enough to answer, say so explicitly. You may
+   add general knowledge only in a separate part, marked as such.
 
 ## Output
 
-- La risposta, citando per ogni affermazione la nota da cui viene, con il
-  percorso relativo alla radice (`notes/processi-poisson.md`).
-- Se ci sono, le lacune: cosa manca nell'archivio per rispondere bene.
-- Se ci sono, le contraddizioni: note che dicono cose incompatibili.
+- The answer, citing for every claim the note it comes from, with its
+  path from the archive root (`notes/poisson-process.md`).
+- If any, the gaps: what is missing from the archive to answer well.
+- If any, the contradictions: notes that say incompatible things.
 
-Molte interfacce di chat non disegnano la matematica e trattano i
-backslash come escape (`\,` diventa `,`). Per questo, nella risposta in
-chat:
+Many chat interfaces do not render math and treat backslashes as
+escapes (`\,` becomes `,`). So, in the chat answer:
 
-- formule LaTeX in blocchi di codice `latex`; quelle brevi dentro il
-  testo in codice inline;
-- diagrammi in blocchi `mermaid`;
-- codice in blocchi con il nome del linguaggio.
+- LaTeX formulas go in `latex` code blocks; short ones inline, as
+  inline code;
+- diagrams go in `mermaid` blocks;
+- code goes in blocks tagged with the language.
 
-Se l'utente chiede di salvare la risposta, scrivila anche in
-`answers/AAAA-MM-GG-argomento.md` (argomento in kebab-case, solo ASCII;
-crea la cartella se manca), in Markdown normale: matematica tra `$...$`
-e `$$...$$`, diagrammi in blocchi `mermaid`, codice in blocchi con il
-linguaggio. In chat basta un breve riassunto e il percorso del file.
+If the user asks to save the answer, also write it to
+`answers/YYYY-MM-DD-topic.md` (topic in kebab-case, ASCII only; create
+the folder if missing), as plain Markdown: math between `$...$` and
+`$$...$$`, diagrams in `mermaid` blocks, code in blocks tagged with the
+language. In chat, a short summary and the file path are enough.
 
-## Vincoli
+## Constraints
 
-- Sola lettura: questo workflow non modifica, crea né sposta file.
-  L'unica eccezione è il file in `answers/`, e solo se l'utente chiede
-  di salvare la risposta.
-- Non attribuire alle note ciò che non dicono. Una parafrasi deve restare
-  fedele; nel dubbio, cita la frase.
+- Read-only: this workflow does not edit, create or move files. The
+  only exception is the file in `answers/`, and only if the user asks
+  to save the answer.
+- Do not attribute to the notes what they do not say. A paraphrase must
+  stay faithful; when in doubt, quote the sentence.

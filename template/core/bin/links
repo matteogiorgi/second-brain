@@ -1,18 +1,29 @@
 #!/bin/sh
-# links: elenca link rotti e note orfane dell'archivio
+# links: list the archive's broken links and orphan notes
 #
-# L'archivio è quello in cui ci si trova (la cartella corrente o una che
-# la contiene); fuori da un archivio, quello che contiene lo script; se
-# lo script non sta in un archivio (un link simbolico messo altrove),
-# quello in $BRAIN.
+# usage:
+#   links
+#
+# Output, one line per finding:
+#   broken: <note> -> <link target>   the target file does not exist
+#   orphan: <note>                    no note links to it
+#
+# The archive is the one you are in (the current directory or one of
+# its parents); outside an archive, the one containing the script; if
+# the script is not inside an archive (a symlink placed elsewhere), the
+# one in $BRAIN.
 
+# -e: stop at the first failing command; -u: treat unset variables as
+# errors instead of silently expanding them to an empty string
 set -eu
 
-# un archivio ha AGENTS.md, inbox/ e notes/
+# an archive has AGENTS.md, inbox/ and notes/
 is_archive() {
     [ -f "$1/AGENTS.md" ] && [ -d "$1/inbox" ] && [ -d "$1/notes" ]
 }
 
+# 1. walk up from the current directory (with symlinks resolved, -P)
+#    until an archive is found or the filesystem root is reached
 root=''
 d=$(pwd -P)
 while :; do
@@ -20,43 +31,71 @@ while :; do
         root=$d
         break
     fi
-    [ "$d" != / ] || break
+    [ "$d" != / ] || break # stop after checking /
     d=$(dirname "$d")
 done
+# 2. otherwise the archive the script lives in: $0 is the script's path,
+#    so its parent's parent is the archive when the script is in bin/
 if [ -z "$root" ] && is_archive "$(dirname "$0")/.."; then
     root="$(dirname "$0")/.."
 fi
+# 3. otherwise the default archive; ${BRAIN:-} expands to '' when BRAIN
+#    is unset, which set -u would otherwise reject
 if [ -z "$root" ] && [ -n "${BRAIN:-}" ] && is_archive "$BRAIN"; then
     root=$BRAIN
 fi
 if [ -z "$root" ]; then
-    echo "links: archivio non trovato (né qui, né accanto allo script, né in \$BRAIN)" >&2
+    echo "links: no archive found (not here, not next to the script, not in \$BRAIN)" >&2
     exit 1
 fi
+
+# work from the archive root, so every path below is relative to it;
+# root becomes absolute, to strip it from resolved paths later
 cd "$root"
 root=$(pwd -P)
+
+# $seen collects, one per line, every note that some link points to;
+# the trap deletes the temporary file however the script exits
 seen=$(mktemp)
 trap 'rm -f "$seen"' EXIT
 
-# note da controllare, e note da cui leggere i link
+# notes that can be orphans (journal/ is exempt: daily notes are entry
+# points), and notes whose links count (journal/ included, archive/ not)
 notes=$(find notes projects areas -name '*.md' 2>/dev/null | sort)
 sources=$(find notes projects areas journal -name '*.md' 2>/dev/null | sort)
 
+# the for loops split file names on spaces: safe, because the note
+# format forbids spaces in names
 for f in $sources; do
-    # ignora blocchi di codice recintati e codice inline
+    # extract link targets, skipping code (links there are examples):
+    #   awk  drops fenced code blocks, toggling c on every ``` line
+    #   sed  drops inline code spans (`...`)
+    #   grep keeps every "](target)", the tail of a Markdown link
+    #   sed  strips "](" and ")", and any "#section" anchor
+    # (the backticks in single quotes are literal characters to match,
+    # not command substitutions, hence the shellcheck directive)
+    # shellcheck disable=SC2016
     awk '/^```/ { c = !c; next } !c' "$f" | sed 's/`[^`]*`//g' |
         grep -o '](\([^)]*\))' | sed 's/^](//; s/)$//; s/#.*//' |
         while read -r t; do
-            case $t in *://* | '') continue ;; esac
+            # skip URLs (http://, https://, ...), mail links and empty
+            # targets (an anchor-only link like #section becomes empty)
+            case $t in *://* | mailto:* | '') continue ;; esac
+            # resolve the target relative to the folder of the note
+            # that contains the link; d is empty if the folder is missing
             d=$(cd "$(dirname "$f")/$(dirname "$t")" 2>/dev/null && pwd -P) || d=
             if [ -n "$d" ] && [ -e "$d/$(basename "$t")" ]; then
+                # record the target as a path from the root:
+                # ${d#"$root"/} removes the "$root/" prefix
                 echo "${d#"$root"/}/$(basename "$t")" >>"$seen"
             else
-                echo "rotto:  $f -> $t"
+                echo "broken: $f -> $t"
             fi
         done
 done
 
+# a note is an orphan if its path never appears, as a whole line
+# (-x) and as a fixed string (-F), among the recorded targets
 for f in $notes; do
-    grep -qxF "$f" "$seen" || echo "orfana: $f"
+    grep -qxF "$f" "$seen" || echo "orphan: $f"
 done

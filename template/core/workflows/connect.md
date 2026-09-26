@@ -1,48 +1,46 @@
 # Connect
 
-## Scopo
+## Purpose
 
-Mantenere sana la rete di collegamenti: trovare note che dovrebbero
-citarsi e non lo fanno, note isolate e link rotti.
+Keep the link graph healthy: find notes that should cite each other and
+do not, isolated notes and broken links.
 
 ## Input
 
-L'ambito indicato dall'utente: una nota, una cartella o un tag. Se non
-è indicato, tutte le note fuori da `archive/` (`answers/` non contiene
-note).
+The scope given by the user: a note, a folder or a tag. If none is
+given, every note outside `archive/` (`answers/` contains no notes).
 
-## Passi
+## Steps
 
-1. **Link rotti.** Per ogni link relativo nell'ambito, verifica che il
-   file di destinazione esista.
-2. **Note orfane.** Elenca le note dell'ambito che non ricevono link da
-   nessun'altra nota. Contano i link che partono da `journal/`, non
-   quelli che partono da `archive/`. Le note di `journal/` sono escluse
-   da questo controllo.
+1. **Broken links.** For every relative link in the scope, check that
+   the target file exists.
+2. **Orphan notes.** List the notes in the scope that no other note
+   links to. Links from `journal/` count, links from `archive/` do not.
+   Notes in `journal/` are exempt from this check.
 
-   Per i passi 1 e 2 puoi usare `bin/links`, che li esegue sull'intero
-   archivio; poi filtra il risultato sull'ambito.
-3. **Collegamenti mancanti.** Per ogni nota dell'ambito, individua i
-   concetti principali e cerca altre note che li trattano senza essere
-   collegate. Proponi un collegamento solo se una delle due note aiuta
-   davvero a capire l'altra; condividere un tag non basta.
-4. Presenta i risultati e aspetta conferma.
-5. Applica solo i collegamenti confermati, in entrambe le direzioni,
-   nella sezione `## Collegamenti` o nel testo.
+   For steps 1 and 2 you can use `bin/links`, which runs them on the
+   whole archive; then filter its output to the scope.
+3. **Missing links.** For every note in the scope, identify its main
+   concepts and look for other notes that deal with them without being
+   linked. Propose a link only if one of the two notes really helps to
+   understand the other; sharing a tag is not enough.
+4. Present the findings and wait for confirmation.
+5. Apply only the confirmed links, in both directions, in the
+   `## Links` section or in the text.
 
 ## Output
 
-Prima della conferma, tre elenchi:
+Before confirmation, three lists:
 
-- link rotti: nota, link, e se esiste un file con nome simile che
-  potrebbe essere la destinazione giusta;
-- note orfane;
-- collegamenti proposti: coppia di note e una riga sul perché.
+- broken links: note, link, and whether a file with a similar name
+  exists that might be the right target;
+- orphan notes;
+- proposed links: pair of notes and one line on why.
 
-Dopo la conferma, l'elenco delle modifiche fatte.
+After confirmation, the list of changes made.
 
-## Vincoli
+## Constraints
 
-- Non correggere i link rotti da solo: proponi la correzione.
-- Non creare note nuove per colmare lacune: segnalale.
-- Meglio pochi collegamenti significativi che molti deboli.
+- Do not fix broken links yourself: propose the fix.
+- Do not create new notes to fill gaps: report them.
+- A few meaningful links are better than many weak ones.

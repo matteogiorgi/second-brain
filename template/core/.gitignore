@@ -1,8 +1,8 @@
-# risposte salvate da ask: usa e getta, fuori da git
+# answers saved by ask: disposable, kept out of git
 answers/
 
-# in inbox/ git traccia solo il testo: i file non di testo (PDF,
-# immagini, ...) li legge il triage, poi si conservano fuori dall'archivio
+# in inbox/ git tracks only text: non-text files (PDFs, images, ...)
+# are read by triage, then kept outside the archive
 inbox/*
 !inbox/*.md
 !inbox/*.txt

@@ -1,58 +1,57 @@
 # Triage
 
-## Scopo
+## Purpose
 
-Svuotare `inbox/` trasformando ogni appunto grezzo in contenuto
-dell'archivio, nel formato corretto e collegato al resto.
+Empty `inbox/` by turning every raw capture into content of the archive,
+in the right format and linked to the rest.
 
 ## Input
 
-Tutti i file di `inbox/`, esclusi i file nascosti. Anche i file che non
-sono testo (PDF, immagini): leggine il contenuto come per gli altri
-appunti.
+Every file in `inbox/`, except hidden files. Non-text files (PDFs,
+images) too: read their content like any other capture.
 
-## Passi
+## Steps
 
-1. Leggi tutti gli appunti prima di modificare qualcosa: appunti vicini
-   possono parlare della stessa idea e vanno trattati insieme.
-2. Per ogni appunto (o gruppo di appunti sulla stessa idea), cerca nelle
-   note esistenti se l'argomento è già trattato: cerca nei titoli, nei
-   tag e nel testo, provando anche sinonimi e termini correlati.
-3. Scegli una delle tre strade:
-   - **Integrare**: se esiste una nota sulla stessa idea, aggiungi lì il
-     contenuto nuovo, nella sezione giusta, e aggiorna `updated`.
-   - **Creare**: se l'idea è nuova, crea una nota nel formato previsto.
-     Destinazione predefinita `notes/`; `projects/` o `areas/` solo se
-     l'appunto riguarda chiaramente un progetto o un'area esistente.
-   - **Chiedere**: se l'appunto è ambiguo, troppo breve per capirne il
-     senso, o potrebbe andare in più posti, non decidere: mettilo nella
-     lista delle domande.
-4. Se il contenuto viene da una fonte (un libro, una lezione, un file
-   passato dall'utente), compila `source` nella nota.
-5. Per ogni nota creata o modificata, cerca note correlate e aggiungi i
-   collegamenti in entrambe le direzioni, nella sezione `## Collegamenti`
-   o nel testo dove il riferimento è naturale.
-6. Sposta ogni appunto smistato in `archive/inbox/`, con lo stesso nome.
-   Gli appunti in attesa di risposta restano in `inbox/`. Un file che
-   non è testo (un PDF, un'immagine) non va in `archive/inbox/`: lascialo
-   dov'è e segnalalo nel riepilogo.
+1. Read every capture before changing anything: nearby captures may be
+   about the same idea and must be handled together.
+2. For every capture (or group of captures on the same idea), search the
+   existing notes to see whether the topic is already covered: search
+   titles, tags and text, trying synonyms and related terms too.
+3. Pick one of three paths:
+   - **Integrate**: if a note on the same idea exists, add the new
+     content there, in the right section, and update `updated`.
+   - **Create**: if the idea is new, create a note in the expected
+     format. Default destination `notes/`; `projects/` or `areas/` only
+     if the capture is clearly about an existing project or area.
+   - **Ask**: if the capture is ambiguous, too short to make sense of,
+     or could go in several places, do not decide: put it in the list
+     of questions.
+4. If the content comes from a source (a book, a lecture, a file the
+   user gave you), fill in `source` in the note.
+5. For every note created or changed, look for related notes and add
+   links in both directions, in the `## Links` section or in the text
+   where the reference is natural.
+6. Move every triaged capture to `archive/inbox/`, keeping its name.
+   Captures waiting for an answer stay in `inbox/`. A non-text file (a
+   PDF, an image) does not go to `archive/inbox/`: leave it where it is
+   and report it in the summary.
 
 ## Output
 
-Un riepilogo in tre parti, più una quarta se serve:
+A summary in three parts, plus a fourth if needed:
 
-- appunti smistati: per ciascuno, la nota creata o integrata;
-- collegamenti aggiunti: coppie di note;
-- domande: per ogni appunto rimasto in `inbox/`, cosa serve sapere per
-  smistarlo;
-- fonti non di testo: quali file l'utente deve spostare fuori
-  dall'archivio prima del prossimo triage, che altrimenti li rileggerebbe.
+- captures triaged: for each one, the note created or integrated;
+- links added: pairs of notes;
+- questions: for every capture left in `inbox/`, what is needed to
+  triage it;
+- non-text sources: which files the user must move out of the archive
+  before the next triage, which would otherwise read them again.
 
-## Vincoli
+## Constraints
 
-- Riporta il contenuto degli appunti, riformulandolo in modo chiaro ma
-  senza aggiungere informazioni che non c'erano.
-- Un appunto di una sola riga senza contesto non diventa una nota nuova:
-  va integrato in una nota esistente o finisce tra le domande.
-- `title` e nome del file descrivono il contenuto, non la data o
-  l'origine dell'appunto.
+- Report the content of the captures, rephrasing it clearly but without
+  adding information that was not there.
+- A one-line capture with no context does not become a new note: it is
+  integrated into an existing note or ends up among the questions.
+- `title` and file name describe the content, not the date or the
+  origin of the capture.

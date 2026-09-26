@@ -1,80 +1,75 @@
 # AGENTS.md
 
-## Scopo
+## Purpose
 
-Archivio personale di note, in testo semplice e versionato con git.
-Serve a raccogliere, collegare e ritrovare idee di studio, lavoro e
-progetti. Il tuo compito è organizzarlo e interrogarlo secondo le regole
-qui sotto.
+A personal archive of notes, in plain text and versioned with git. It
+collects, connects and retrieves ideas from study, work and projects.
+Your job is to organise and query it following the rules below.
 
-## Struttura
+## Structure
 
-- `inbox/`: appunti grezzi appena catturati, senza formato. Da smistare.
-- `notes/`: note atomiche, una idea per file, tutte allo stesso livello.
-  È la destinazione predefinita.
-- `projects/`: note legate a qualcosa con una fine (un esame, una tesi,
-  un repository).
-- `areas/`: note su responsabilità continue (studio, carriera, questo
-  archivio).
-- `journal/`: note giornaliere, `AAAA-MM-GG.md`.
-- `archive/`: note ritirate, nella stessa sottocartella d'origine
-  (`archive/projects/...`); `archive/inbox/` per gli appunti originali
-  già smistati. Per ritirare una nota, spostala mantenendo la
-  sottocartella, aggiorna i suoi link relativi e quelli delle note che la
-  citano.
-- `workflows/`: procedure da eseguire su richiesta.
-- `answers/`: risposte del workflow `ask` salvate su richiesta, escluse
-  da git. Non sono note: non cercarci e non linkarle.
-- `bin/`: script di supporto (`capture`, `links`). Puoi eseguirli, non
-  modificarli.
-- `editors/`, `CLAUDE.md`, `.claude/` e altri file di configurazione
-  degli strumenti: non sono note, non toccarli.
+- `inbox/`: raw captures, just taken, with no format. To be triaged.
+- `notes/`: atomic notes, one idea per file, all at the same level.
+  This is the default destination.
+- `projects/`: notes tied to something with an end (an exam, a thesis,
+  a repository).
+- `areas/`: notes on ongoing responsibilities (study, career, this
+  archive).
+- `journal/`: daily notes, `YYYY-MM-DD.md`.
+- `archive/`: retired notes, in the same subfolder they came from
+  (`archive/projects/...`); `archive/inbox/` for original captures
+  already triaged. To retire a note, move it keeping its subfolder, then
+  update its relative links and those of the notes that cite it.
+- `workflows/`: procedures to run on request.
+- `answers/`: answers from the `ask` workflow, saved on request and
+  ignored by git. They are not notes: do not search them or link them.
+- `bin/`: helper scripts (`capture`, `links`). You may run them, not
+  edit them.
+- `editors/`, `CLAUDE.md`, `.claude/` and other tool configuration
+  files: they are not notes, do not touch them.
 
-## Formato
+## Format
 
-La fonte completa, se presente, è `notes/formato-delle-note.md`; in
-sintesi:
+The full reference, if present, is `notes/note-format.md`; in short:
 
-- Nomi file: minuscolo, kebab-case, solo ASCII, estensione `.md`.
-- Frontmatter YAML obbligatorio, tranne che in `inbox/` e
-  `archive/inbox/`: `title`, `tags` (lista, minuscolo, kebab-case,
-  ASCII), `created` (AAAA-MM-GG).
-  Facoltativi: `updated`, `source`. Nessun altro campo.
-- `source`: quando il contenuto viene da una fonte (libro, articolo,
-  lezione, file passato dall'utente), descrivila in modo da poterla
-  ritrovare: autore, titolo, capitolo, URL o data della lezione. Mai un
-  percorso di file.
-- Un solo titolo di livello 1, uguale a `title`; sezioni di livello 2.
-- Link Markdown relativi al file corrente, con estensione:
-  `[testo](altra-nota.md)`, `[testo](../areas/nota.md)`. Mai wikilink,
-  mai percorsi assoluti, niente link a sezioni.
-- A capo manuale intorno alle 72 colonne.
-- Matematica in LaTeX tra `$...$` e `$$...$$`.
-- Chiudere ogni nota con una sezione `## Collegamenti`; quando la nota
-  contiene una scelta, aggiungere subito prima una sezione `## Perché`.
-- Lingua: italiano. Termini tecnici in inglese dove sono lo standard.
+- File names: lowercase, kebab-case, ASCII only, `.md` extension.
+- YAML frontmatter is required, except in `inbox/` and
+  `archive/inbox/`: `title`, `tags` (a list, lowercase, kebab-case,
+  ASCII), `created` (YYYY-MM-DD).
+  Optional: `updated`, `source`. No other fields.
+- `source`: when the content comes from a source (book, article,
+  lecture, a file the user gave you), describe it so it can be found
+  again: author, title, chapter, URL or lecture date. Never a file path.
+- A single level-1 heading, equal to `title`; level-2 sections.
+- Markdown links relative to the current file, with the extension:
+  `[text](other-note.md)`, `[text](../areas/note.md)`. Never wikilinks,
+  never absolute paths, no links to sections.
+- Wrap lines by hand at about 72 columns.
+- Fenced code blocks name their language; tables in GitHub style; math
+  in LaTeX between `$...$` and `$$...$$`. No other extensions.
+- End every note with a `## Links` section; when the note records a
+  choice, add a `## Why` section right before it.
+- Language: English.
 
-## Regole ferme
+## Hard rules
 
-- Non cancellare mai file: sposta in `archive/`.
-- Non creare link verso note inesistenti.
-- Non modificare file fuori da questa cartella.
-- Non copiare nell'archivio file che non sono testo (PDF, immagini,
-  audio): il loro contenuto va nelle note, gli originali restano fuori.
-- Non modificare file di configurazione degli strumenti senza richiesta
-  esplicita.
-- Non fare commit: lascia le modifiche da rivedere con `git diff`.
-- Non inventare contenuto: le note riportano ciò che è negli appunti o
-  che l'utente ha chiesto di scrivere.
-- In caso di dubbio su dove va una nota, come chiamarla o se unirla a
-  un'altra, chiedi invece di decidere.
+- Never delete files: move them to `archive/`.
+- Never link to notes that do not exist.
+- Never edit files outside this folder.
+- Never copy non-text files (PDFs, images, audio) into the archive:
+  their content goes into notes, the originals stay outside.
+- Never edit tool configuration files unless explicitly asked.
+- Never commit: leave the changes to be reviewed with `git diff`.
+- Never invent content: notes report what is in the captures or what
+  the user asked you to write.
+- When in doubt about where a note goes, what to call it or whether to
+  merge it with another, ask instead of deciding.
 
-## Workflow disponibili
+## Available workflows
 
-Quando ti viene chiesto di eseguire un workflow, leggi il file
-corrispondente e seguilo.
+When asked to run a workflow, read the matching file and follow it.
 
-- `workflows/triage.md`: smista gli appunti di `inbox/` in note vere.
-- `workflows/ask.md`: risponde a una domanda usando solo le note.
-- `workflows/connect.md`: trova collegamenti mancanti, note orfane e
-  link rotti.
+- `workflows/triage.md`: turns the captures in `inbox/` into real notes.
+- `workflows/ask.md`: answers a question using only the notes.
+- `workflows/connect.md`: finds missing links, orphan notes and broken
+  links.

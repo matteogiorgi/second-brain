@@ -1,141 +1,136 @@
 ---
-title: Istruzioni agent-agnostiche
-tags: [second-brain, agenti, convenzioni]
+title: Agent-agnostic instructions
+tags: [second-brain, agents, conventions]
 created: 2026-09-25
 ---
 
-# Istruzioni agent-agnostiche
+# Agent-agnostic instructions
 
-## Il problema
+## The problem
 
-Ogni agente AI cerca le proprie istruzioni in un posto diverso: un file
-con un nome specifico nella radice del progetto, una cartella di comandi
-con una sintassi propria. Se scrivo le istruzioni lì, il sistema diventa
-di quell'agente. Le istruzioni sono invece la parte più preziosa del
-lavoro con un agente, perché accumulano tutto ciò che ho imparato su come
-farlo lavorare bene, e vanno trattate come
-[nucleo](nucleo-e-adattatori.md).
+Every AI agent looks for its instructions in a different place: a file
+with a specific name at the project root, a commands folder with its
+own syntax. If I write the instructions there, the system belongs to
+that agent. Yet the instructions are the most valuable part of working
+with an agent, because they accumulate everything I have learned about
+making it work well, so they belong to the
+[core](core-and-adapters.md).
 
-## Due livelli
+## Two levels
 
-- **`AGENTS.md`**, nella radice: ciò che l'agente deve sapere *sempre*,
-  in ogni sessione. Contesto e regole.
-- **`workflows/`**: ciò che l'agente deve fare *quando glielo chiedo*.
-  Una procedura per file.
+- **`AGENTS.md`**, at the root: what the agent must *always* know, in
+  every session. Context and rules.
+- **`workflows/`**: what the agent must do *when I ask*. One procedure
+  per file.
 
-`AGENTS.md` è breve perché viene letto ogni volta; i workflow possono
-essere dettagliati perché vengono letti solo quando servono.
+`AGENTS.md` is short because it is read every time; workflows can be
+detailed because they are read only when needed.
 
 ## AGENTS.md
 
-Contiene, in quest'ordine:
+It contains, in this order:
 
-1. **Scopo**: due righe su cosa è l'archivio e a chi serve.
-2. **Struttura**: le cartelle e a cosa serve ciascuna.
-3. **Formato**: un riassunto operativo delle regole, con rimando a
-   `notes/formato-delle-note.md` come fonte completa.
-4. **Regole ferme**: ciò che l'agente non fa mai (vedi sotto).
-5. **Workflow disponibili**: elenco dei file in `workflows/`, una riga
-   ciascuno.
+1. **Purpose**: two lines on what the archive is and who it is for.
+2. **Structure**: the folders and what each one is for.
+3. **Format**: an operational summary of the rules, pointing to
+   `notes/note-format.md` as the full reference.
+4. **Hard rules**: what the agent never does (see below).
+5. **Available workflows**: the files in `workflows/`, one line each.
 
-Non contiene spiegazioni del perché delle scelte: quelle stanno nelle
-note, dove le leggo io. `AGENTS.md` è scritto per chi esegue, le note per
-chi capisce.
+It does not explain the reasons behind the choices: those live in the
+notes, where I read them. `AGENTS.md` is written for whoever executes,
+the notes for whoever understands.
 
-## Regole ferme
+## Hard rules
 
-Il nucleo minimo, da riportare in `AGENTS.md`:
+The minimal set, to be included in `AGENTS.md`:
 
-- Non cancellare note: spostarle in `archive/`.
-- Non creare link verso note inesistenti.
-- Non modificare file fuori dall'archivio.
-- Non copiare nell'archivio file che non sono testo: il loro contenuto va
-  nelle note, gli originali restano fuori.
-- Non modificare gli adattatori senza richiesta esplicita.
-- Non fare commit: lasciare le modifiche da rivedere con `git diff`.
-- In caso di dubbio su dove va una nota o come chiamarla, chiedere invece
-  di decidere.
+- Never delete notes: move them to `archive/`.
+- Never link to notes that do not exist.
+- Never edit files outside the archive.
+- Never copy non-text files into the archive: their content goes into
+  notes, the originals stay outside.
+- Never edit the adapters unless explicitly asked.
+- Never commit: leave the changes to be reviewed with `git diff`.
+- When in doubt about where a note goes or what to call it, ask instead
+  of deciding.
 
 ## workflows/
 
-Ogni file descrive una procedura in prosa imperativa, con la stessa
-struttura:
+Each file describes a procedure in imperative prose, with the same
+structure:
 
 ```markdown
 # Triage
 
-## Scopo
-Svuotare inbox/ assegnando a ogni appunto una destinazione.
+## Purpose
+Empty inbox/ by giving every capture a destination.
 
 ## Input
-Tutti i file in inbox/.
+Every file in inbox/.
 
-## Passi
-1. Per ogni file, capire di cosa parla.
-2. Se esiste già una nota sullo stesso argomento, integrare lì il
-   contenuto; altrimenti creare una nota nuova secondo il formato.
-3. Cercare note correlate e aggiungere i collegamenti in entrambe le
-   direzioni.
-4. Spostare il file originale in archive/inbox/.
+## Steps
+1. For every file, work out what it is about.
+2. If a note on the same topic already exists, integrate the content
+   there; otherwise create a new note in the expected format.
+3. Look for related notes and add links in both directions.
+4. Move the original file to archive/inbox/.
 
 ## Output
-Un riepilogo: per ogni appunto, dove è finito e quali link sono stati
-aggiunti.
+A summary: for every capture, where it went and which links were added.
 
-## Vincoli
-Nessuna nota nuova per appunti di una riga senza contesto: chiedere.
+## Constraints
+No new note for one-line captures with no context: ask.
 ```
 
-Due regole per scriverli:
+Two rules for writing them:
 
-- **Nessuna sintassi di un agente.** Gli argomenti si nominano in prosa
-  ("la domanda dell'utente"), non con segnaposto specifici di uno
-  strumento; sarà l'adattatore a passarli.
-- **Eseguibili a mano.** Un workflow deve essere abbastanza chiaro da
-  poterlo seguire io, senza agente. Se non ci riesco, è scritto male
-  anche per l'agente.
+- **No agent syntax.** Arguments are named in prose ("the user's
+  question"), not with placeholders specific to a tool; the adapter
+  passes them.
+- **Runnable by hand.** A workflow must be clear enough for me to follow
+  it without an agent. If I cannot, it is badly written for the agent
+  too.
 
-## Adattatori per un agente
+## Adapters for an agent
 
-Un agente nuovo richiede al massimo due cose.
+A new agent needs at most two things.
 
-**Il file letto all'avvio.** Se l'agente legge `AGENTS.md` da solo, non
-serve nulla. Altrimenti, un file col nome che si aspetta, che importa
-`AGENTS.md` se l'agente supporta gli import, o che contiene una sola
-frase: "Leggi `AGENTS.md` e seguine le istruzioni."
+**The startup file.** If the agent reads `AGENTS.md` on its own, nothing
+is needed. Otherwise, a file with the name it expects, which imports
+`AGENTS.md` if the agent supports imports, or contains a single
+sentence: "Read `AGENTS.md` and follow its instructions."
 
-**I comandi.** Uno per workflow, di una riga, che rimanda al file e passa
-gli eventuali argomenti con la sintassi dell'agente, per esempio:
-"Esegui `workflows/ask.md`. Domanda: $ARGUMENTS". I comandi sono una
-comodità: in loro assenza basta chiedere all'agente di eseguire il
-workflow per nome.
+**The commands.** One per workflow, one line each, pointing to the file
+and passing any arguments with the agent's syntax, for example: "Run
+`workflows/ask.md`. Question: $ARGUMENTS". Commands are a convenience:
+without them, I just ask the agent to run the workflow by name.
 
 ## Test
 
-Apro una sessione con un agente diverso da quello abituale, o senza
-adattatori, e gli chiedo di eseguire un workflow dopo aver letto solo
-`AGENTS.md`. Se il risultato è comparabile, le istruzioni sono davvero
-agnostiche.
+I open a session with an agent other than the usual one, or without
+adapters, and ask it to run a workflow after reading only `AGENTS.md`.
+If the result is comparable, the instructions really are agnostic.
 
-## Perché
+## Why
 
-**Prosa invece di configurazione.** La prosa è l'unica interfaccia che
-tutti gli agenti capiscono, e continueranno a capire. Qualsiasi formato
-strutturato specifico è una scommessa sulla longevità di uno strumento.
+**Prose instead of configuration.** Prose is the only interface every
+agent understands, and will keep understanding. Any specific structured
+format is a bet on the lifespan of a tool.
 
-**Workflow eseguibili a mano.** Il sistema degrada con grazia: senza
-agente diventa più lento, non inutilizzabile.
+**Workflows runnable by hand.** The system degrades gracefully: without
+an agent it gets slower, not unusable.
 
-**Separare ciò che si sa da ciò che si fa.** Un file unico con contesto e
-procedure cresce finché l'agente non lo legge più con attenzione. Due
-livelli tengono corto ciò che viene letto sempre.
+**Separating what is known from what is done.** A single file with
+context and procedures grows until the agent stops reading it
+carefully. Two levels keep short what is read every time.
 
-**Niente commit da parte dell'agente.** La revisione del diff è il
-momento in cui mi accorgo degli errori e aggiorno le istruzioni; saltarla
-significa perdere il meccanismo con cui il sistema migliora.
+**No commits by the agent.** Reviewing the diff is when I notice
+mistakes and update the instructions; skipping it means losing the
+mechanism by which the system improves.
 
-## Collegamenti
+## Links
 
 - [Second brain](../areas/second-brain.md)
-- [Nucleo e adattatori](nucleo-e-adattatori.md)
-- [Formato delle note](formato-delle-note.md)
+- [Core and adapters](core-and-adapters.md)
+- [Note format](note-format.md)

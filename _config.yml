@@ -5,6 +5,6 @@ plugins:
 kramdown:
   smart_quotes: ["apos", "apos", "quot", "quot"]
 
-# modelli di file per init.sh: non sono pagine del sito
+# file templates for init.sh: not pages of the site
 exclude:
   - template/

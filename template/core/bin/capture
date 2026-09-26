@@ -1,23 +1,27 @@
 #!/bin/sh
-# capture: scrive un appunto grezzo nell'inbox dell'archivio
+# capture: write a raw capture to the archive's inbox
 #
-# uso:
-#   capture "testo dell'appunto"
-#   comando | capture
-#   capture                  (da terminale: apre $EDITOR)
+# usage:
+#   capture "text of the capture"
+#   command | capture
+#   capture                  (from a terminal: opens $EDITOR)
 #
-# L'archivio è quello in cui ci si trova (la cartella corrente o una che
-# la contiene); fuori da un archivio, quello che contiene lo script; se
-# lo script non sta in un archivio (un link simbolico messo altrove),
-# quello in $BRAIN.
+# The archive is the one you are in (the current directory or one of
+# its parents); outside an archive, the one containing the script; if
+# the script is not inside an archive (a symlink placed elsewhere), the
+# one in $BRAIN.
 
+# -e: stop at the first failing command; -u: treat unset variables as
+# errors instead of silently expanding them to an empty string
 set -eu
 
-# un archivio ha AGENTS.md, inbox/ e notes/
+# an archive has AGENTS.md, inbox/ and notes/
 is_archive() {
     [ -f "$1/AGENTS.md" ] && [ -d "$1/inbox" ] && [ -d "$1/notes" ]
 }
 
+# 1. walk up from the current directory (with symlinks resolved, -P)
+#    until an archive is found or the filesystem root is reached
 root=''
 d=$(pwd -P)
 while :; do
@@ -25,33 +29,46 @@ while :; do
         root=$d
         break
     fi
-    [ "$d" != / ] || break
+    [ "$d" != / ] || break # stop after checking /
     d=$(dirname "$d")
 done
+# 2. otherwise the archive the script lives in: $0 is the script's path,
+#    so its parent's parent is the archive when the script is in bin/
 if [ -z "$root" ] && is_archive "$(dirname "$0")/.."; then
     root="$(dirname "$0")/.."
 fi
+# 3. otherwise the default archive; ${BRAIN:-} expands to '' when BRAIN
+#    is unset, which set -u would otherwise reject
 if [ -z "$root" ] && [ -n "${BRAIN:-}" ] && is_archive "$BRAIN"; then
     root=$BRAIN
 fi
 if [ -z "$root" ]; then
-    echo "capture: archivio non trovato (né qui, né accanto allo script, né in \$BRAIN)" >&2
+    echo "capture: no archive found (not here, not next to the script, not in \$BRAIN)" >&2
     exit 1
 fi
+
+# file name: date, time and PID ($$), so two captures in the same
+# second from different processes never overwrite each other
 dir="$root/inbox"
 f="$dir/$(date +%Y%m%d-%H%M%S)-$$.md"
 
 if [ $# -gt 0 ]; then
+    # arguments given: they are the text, joined by spaces ("$*")
     printf '%s\n' "$*" >"$f"
 elif [ -t 0 ]; then
+    # standard input is a terminal (nothing piped in): open the editor
     "${EDITOR:-vi}" "$f"
 else
+    # standard input is a pipe or a file: copy it into the capture
     cat >"$f"
 fi
 
-# niente appunti vuoti
-if [ ! -s "$f" ]; then
+# no empty captures: keep the file only if it exists and contains at
+# least one non-blank character, so an editor closed without saving, an
+# empty pipe or blank text leave nothing behind (grep fails on both a
+# missing file and a blank one)
+if ! grep -q '[^[:space:]]' "$f" 2>/dev/null; then
     rm -f "$f"
-    echo "capture: appunto vuoto, nulla salvato" >&2
+    echo "capture: empty capture, nothing saved" >&2
     exit 1
 fi

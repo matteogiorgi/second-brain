@@ -1,2 +1,2 @@
-Esegui il workflow descritto in workflows/connect.md.
-Ambito: $ARGUMENTS
+Run the workflow described in workflows/connect.md.
+Scope: $ARGUMENTS

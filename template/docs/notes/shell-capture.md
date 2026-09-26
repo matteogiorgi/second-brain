@@ -1,167 +1,104 @@
 ---
-title: Cattura da shell
-tags: [second-brain, cattura, shell, posix]
+title: Shell capture
+tags: [second-brain, capture, shell, posix]
 created: 2026-09-25
 ---
 
-# Cattura da shell
+# Shell capture
 
-## Principio
+## Principle
 
-La cattura è il punto in cui un'idea entra nel sistema, e deve costare
-il meno possibile: zero decisioni e zero dipendenze. Niente titolo,
-niente tag, niente scelta della cartella. Tutto quello che richiede
-pensiero è rimandato al triage (vedi
-[istruzioni agent-agnostiche](istruzioni-agent-agnostiche.md)).
+Capture is where an idea enters the system, and it must cost as little
+as possible: no decisions and no dependencies. No title, no tags, no
+folder to choose. Everything that requires thought is left to triage
+(see [agent-agnostic instructions](agent-agnostic-instructions.md)).
 
-Per lo stesso motivo la cattura non dipende da nessun editor e da nessun
-agente: deve funzionare anche quando entrambi sono rotti, assenti o
-lenti ad avviarsi. È il pezzo più semplice del
-[nucleo](nucleo-e-adattatori.md), e deve restarlo.
+For the same reason, capture depends on no editor and no agent: it
+must work even when both are broken, missing or slow to start. It is
+the simplest piece of the [core](core-and-adapters.md), and it must
+stay that way.
 
-## L'inbox come interfaccia
+## The inbox as an interface
 
-L'unico contratto è questo: *un file di testo che compare in `inbox/`
-è un appunto*. Lo script qui sotto è solo il modo più comodo di
-rispettarlo. Qualsiasi altra via che deposita un file in `inbox/`
-(una sincronizzazione dal telefono, un'email salvata, un file copiato a
-mano) è una cattura valida.
+The only contract is this: *a text file that appears in `inbox/` is a
+capture*. The `bin/capture` script is just the most convenient way to
+honour it. Any other way of dropping a file into `inbox/` (a sync from
+the phone, a saved email, a file copied by hand) is a valid capture.
 
-I file in `inbox/` sono esentati dal [formato](formato-delle-note.md):
-niente frontmatter, nome a timestamp. Diventano note vere solo dopo il
+Files in `inbox/` are exempt from the [format](note-format.md): no
+frontmatter, timestamped names. They become real notes only after
 triage.
 
-## Lo script
+## The script
 
-`bin/capture`:
+`bin/capture`, in POSIX shell, has three modes, chosen by what it
+receives:
 
-```sh
-#!/bin/sh
-# capture: scrive un appunto grezzo nell'inbox dell'archivio
-#
-# uso:
-#   capture "testo dell'appunto"
-#   comando | capture
-#   capture                  (da terminale: apre $EDITOR)
-#
-# L'archivio è quello in cui ci si trova (la cartella corrente o una che
-# la contiene); fuori da un archivio, quello che contiene lo script; se
-# lo script non sta in un archivio (un link simbolico messo altrove),
-# quello in $BRAIN.
+- **Arguments**: the text on the command line, for one-line ideas.
+- **Standard input**: the output of another command, to capture
+  something that is already text.
+- **Neither**: if standard input is a terminal, it opens the editor on
+  a new file, for longer captures. The editor is `$EDITOR`, so the
+  choice stays outside the script.
 
-set -eu
+The file name combines date, time and PID, so two captures in the same
+second never overwrite each other. An empty capture (editor closed
+without saving, empty pipe, blank text) leaves no file.
 
-# un archivio ha AGENTS.md, inbox/ e notes/
-is_archive() {
-    [ -f "$1/AGENTS.md" ] && [ -d "$1/inbox" ] && [ -d "$1/notes" ]
-}
+The archive is the one you are in (the current directory or one of its
+parents); outside an archive, the one containing the script; if the
+script is not inside an archive, the one in `$BRAIN`. So, with several
+archives, `capture` run inside one of them writes there. If no archive
+is found, the script stops with an error instead of creating an inbox
+in the wrong place.
 
-root=''
-d=$(pwd -P)
-while :; do
-    if is_archive "$d"; then
-        root=$d
-        break
-    fi
-    [ "$d" != / ] || break
-    d=$(dirname "$d")
-done
-if [ -z "$root" ] && is_archive "$(dirname "$0")/.."; then
-    root="$(dirname "$0")/.."
-fi
-if [ -z "$root" ] && [ -n "${BRAIN:-}" ] && is_archive "$BRAIN"; then
-    root=$BRAIN
-fi
-if [ -z "$root" ]; then
-    echo "capture: archivio non trovato (né qui, né accanto allo script, né in \$BRAIN)" >&2
-    exit 1
-fi
-dir="$root/inbox"
-f="$dir/$(date +%Y%m%d-%H%M%S)-$$.md"
+## Installation
 
-if [ $# -gt 0 ]; then
-    printf '%s\n' "$*" >"$f"
-elif [ -t 0 ]; then
-    "${EDITOR:-vi}" "$f"
-else
-    cat >"$f"
-fi
-
-# niente appunti vuoti
-if [ ! -s "$f" ]; then
-    rm -f "$f"
-    echo "capture: appunto vuoto, nulla salvato" >&2
-    exit 1
-fi
-```
-
-Tre modi d'uso, scelti in base a cosa arriva:
-
-- **Argomenti**: il testo sulla riga di comando, per le idee di una riga.
-- **Standard input**: l'output di un altro comando, per catturare
-  qualcosa che è già testo.
-- **Nessuno dei due**: se lo standard input è un terminale, apre
-  l'editor su un file nuovo, per appunti più lunghi. L'editor è quello di
-  `$EDITOR`, quindi la scelta resta fuori dallo script.
-
-Il nome del file unisce data, ora e PID, così due catture nello stesso
-secondo non si sovrascrivono. Un appunto vuoto (editor chiuso senza
-salvare, pipe senza output) non lascia file.
-
-L'archivio è quello in cui ci si trova (la cartella corrente o una che
-la contiene); fuori da un archivio, quello che contiene lo script; se
-lo script non sta in un archivio, quello in `$BRAIN`. Così, con più
-archivi, `capture` lanciato dentro uno di essi scrive lì. Se non trova
-un archivio, lo script si ferma con un errore invece di creare
-un'inbox nel posto sbagliato.
-
-## Installazione
-
-`init.sh` aggiunge queste righe in fondo a `~/.profile`; a mano, vanno
-nel profilo della shell:
+`init.sh` appends these lines to `~/.profile`; by hand, they go in the
+shell's login profile:
 
 ```sh
 export BRAIN="$HOME/brain"
 PATH="$BRAIN/bin:$PATH"
 ```
 
-Il profilo si legge al login; per la shell corrente basta
-`. ~/.profile`. Se l'archivio non è stato creato con `init.sh`, lo
-script va anche reso eseguibile:
+The profile is read at login; for the current shell, `. ~/.profile` is
+enough. If the archive was not created with `init.sh`, the script must
+also be made executable:
 
 ```sh
 chmod +x "$BRAIN/bin/capture"
 ```
 
-## Esempi
+## Examples
 
 ```sh
-capture "rivedere la dimostrazione della proprietà di Markov forte"
-xclip -o -selection clipboard | capture  # la clipboard di X
-man 1 sh | col -b | capture             # una pagina di manuale intera
+capture "review the proof of the strong Markov property"
+xclip -o -selection clipboard | capture # the X clipboard
+man 1 sh | col -b | capture             # a whole man page
 ```
 
-Da un editor, basta mandare il testo allo script. In Vim, per esempio,
-`:'<,'>w !capture` cattura la selezione visuale. È un esempio di
-adattatore: comodo, ma lo script non ne sa nulla.
+From an editor, just send the text to the script. In Vim, for example,
+`:'<,'>w !capture` captures the visual selection. It is an example of
+an adapter: convenient, but the script knows nothing about it.
 
-## Perché
+## Why
 
-**Nessuna decisione al momento della cattura.** Ogni decisione chiesta
-nel momento sbagliato è un'occasione per rimandare, e un'idea rimandata
-di solito è persa. Organizzare è un lavoro diverso, che si fa meglio a
-mente fresca e in blocco.
+**No decisions at capture time.** Every decision asked at the wrong
+moment is a chance to postpone, and a postponed idea is usually lost.
+Organising is a different job, done better with a fresh mind and in
+bulk.
 
-**Shell POSIX.** Funziona su qualsiasi sistema simil-Unix senza
-installare nulla, e fra dieci anni funzionerà ancora.
+**POSIX shell.** It works on any Unix-like system without installing
+anything, and it will still work in ten years.
 
-**Un contratto invece di uno strumento.** Definire la cattura come "un
-file in `inbox/`" significa che posso aggiungere nuove vie di ingresso
-senza toccare il resto del sistema.
+**A contract instead of a tool.** Defining capture as "a file in
+`inbox/`" means I can add new entry points without touching the rest of
+the system.
 
-## Collegamenti
+## Links
 
 - [Second brain](../areas/second-brain.md)
-- [Nucleo e adattatori](nucleo-e-adattatori.md)
-- [Formato delle note](formato-delle-note.md)
-- [Istruzioni agent-agnostiche](istruzioni-agent-agnostiche.md)
+- [Core and adapters](core-and-adapters.md)
+- [Note format](note-format.md)
+- [Agent-agnostic instructions](agent-agnostic-instructions.md)

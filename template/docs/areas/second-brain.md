@@ -1,108 +1,107 @@
 ---
-title: Second brain editor-agnostico e agent-agnostico
-tags: [second-brain, pkm, workflow, strumenti]
+title: Editor-agnostic and agent-agnostic second brain
+tags: [second-brain, pkm, workflow, tools]
 created: 2026-09-25
 ---
 
-# Second brain editor-agnostico e agent-agnostico
+# Editor-agnostic and agent-agnostic second brain
 
 ## Idea
 
-Un archivio personale di note in testo semplice, versionato con git, che
-posso leggere e scrivere con qualsiasi editor e far organizzare da
-qualsiasi agente AI. I file sono l'unica fonte di verità; editor e agenti
-sono intercambiabili e si collegano al sistema tramite adattatori sottili.
+A personal archive of notes in plain text, versioned with git, that I
+can read and write with any editor and have organised by any AI agent.
+The files are the only source of truth; editors and agents are
+interchangeable and plug into the system through thin adapters.
 
-Test di correttezza: se elimino tutti gli adattatori, il sistema deve
-continuare a funzionare con `cat`, `grep` e `git`.
+Correctness test: if I delete every adapter, the system must keep
+working with `cat`, `grep` and `git`.
 
-## Architettura
+## Architecture
 
-Il sistema ha tre livelli (dettagli in
-[nucleo e adattatori](../notes/nucleo-e-adattatori.md)):
+The system has three parts (details in
+[core and adapters](../notes/core-and-adapters.md)):
 
-- **Nucleo**: le note, il loro [formato](../notes/formato-delle-note.md),
-  la struttura delle cartelle, le
-  [istruzioni per gli agenti](../notes/istruzioni-agent-agnostiche.md)
-  (`AGENTS.md`) e le procedure (`workflows/`).
-- **Adattatori**: configurazioni specifiche per un editor (`editors/`) o
-  per un agente (`CLAUDE.md`, `.claude/commands/`, ecc.). Sono sottili,
-  non contengono logica e si possono buttare via.
-- **Cattura**: uno script POSIX che scrive nell'inbox da qualunque
-  terminale (vedi [cattura da shell](../notes/cattura-da-shell.md)).
+- **Core**: the notes, their [format](../notes/note-format.md), the
+  folder structure, the
+  [agent instructions](../notes/agent-agnostic-instructions.md)
+  (`AGENTS.md`) and the procedures (`workflows/`).
+- **Adapters**: configuration specific to an editor (`editors/`) or to
+  an agent (`CLAUDE.md`, `.claude/commands/`, etc.). They are thin,
+  hold no logic and can be thrown away.
+- **Capture**: a POSIX script that writes to the inbox from any
+  terminal (see [shell capture](../notes/shell-capture.md)).
 
 ```
 brain/
-├── AGENTS.md          # istruzioni operative per qualsiasi agente
-├── CLAUDE.md          # adattatore: importa AGENTS.md
-├── inbox/             # appunti grezzi, da smistare
-├── notes/             # note atomiche, piatte, una idea per file
-├── projects/          # cose con una fine (esami, tesi, repo)
-├── areas/             # responsabilità continue (studio, carriera, questo sistema)
-├── journal/           # note giornaliere, AAAA-MM-GG.md
-├── archive/           # note ritirate: qui non si cancella, si sposta
-│   └── inbox/         # appunti originali già smistati
-├── workflows/         # procedure in prosa, leggibili da persone e agenti
-├── answers/           # risposte di ask salvate su richiesta, fuori da git
-├── bin/               # script POSIX: capture, links
-├── editors/           # adattatori editor (vim/, ...)
+├── AGENTS.md          # instructions for any agent
+├── CLAUDE.md          # adapter: imports AGENTS.md
+├── inbox/             # raw captures, waiting for triage
+├── notes/             # atomic notes, flat, one idea per file
+├── projects/          # things with an end (exams, a thesis, a repo)
+├── areas/             # ongoing responsibilities (study, career, this system)
+├── journal/           # daily notes, YYYY-MM-DD.md
+├── archive/           # retired notes: nothing is deleted, only moved
+│   └── inbox/         # original captures, already triaged
+├── workflows/         # procedures in prose, for people and agents
+├── answers/           # saved answers from ask, ignored by git
+├── bin/               # POSIX scripts: capture, links
+├── editors/           # editor adapters (vim/, ...)
 └── .claude/
-    └── commands/      # adattatori: ogni comando rimanda a un workflow
+    └── commands/      # adapter: each command points to a workflow
 ```
 
-## Costruzione
+## Setup
 
-L'archivio si crea con `init.sh`, del repository
-<https://github.com/matteogiorgi/second-brain>, che copia i file di
-partenza senza mai sovrascrivere quelli esistenti:
+The archive is created with `init.sh`, from the repository
+<https://github.com/matteogiorgi/second-brain>, which copies the
+starting files without ever overwriting existing ones:
 
 ```sh
 init.sh --claude --vim --docs ~/brain
 ```
 
-Il nucleo (cartelle, `AGENTS.md`, `workflows/`, `bin/`) viene creato
-sempre; `--claude`, `--vim` e `--docs` aggiungono gli adattatori per
-Claude Code, quello per Vim e queste note di documentazione. Se è il
-primo archivio, in fondo a `~/.profile` aggiunge `BRAIN` e `PATH` (vedi
-[cattura da shell](../notes/cattura-da-shell.md)); gli altri passi, come
-il primo commit, li elenca alla fine del suo output.
+The core (folders, `AGENTS.md`, `workflows/`, `bin/`) is always
+created; `--claude`, `--vim` and `--docs` add the Claude Code adapter,
+the Vim adapter and these documentation notes. For the first archive
+it appends `BRAIN` and `PATH` to `~/.profile` (see
+[shell capture](../notes/shell-capture.md)); the remaining steps, such
+as the first commit, are listed at the end of its output.
 
-Senza lo script si procede a mano con gli stessi passi: creare le
-cartelle e `git init`, scrivere `AGENTS.md` e i workflow, poi gli
-adattatori.
+Without the script, the same steps are done by hand: create the
+folders, copy the templates (or write `AGENTS.md`, the workflows and the
+adapters), make `bin/` executable and run `git init`.
 
-## Uso quotidiano
+## Daily use
 
-1. **Catturare** senza pensare: `capture "idea"` o direttamente un file
-   nuovo in `inbox/`. Nessuna decisione su dove va o come si chiama.
-2. **Smistare** una volta al giorno con il workflow `triage`: l'agente
-   assegna frontmatter, nome, destinazione e collegamenti.
-3. **Interrogare** con il workflow `ask` quando serve ritrovare qualcosa:
-   l'agente risponde solo dalle note e cita i file.
-4. **Rivedere** con `git diff` quello che l'agente ha modificato, poi
-   committare.
+1. **Capture** without thinking: `capture "idea"` or a new file in
+   `inbox/`. No decision on where it goes or what it is called.
+2. **Triage** once a day with the `triage` workflow: the agent assigns
+   frontmatter, name, destination and links.
+3. **Ask** with the `ask` workflow when I need to find something: the
+   agent answers from the notes only and cites the files.
+4. **Review** with `git diff` what the agent changed, then commit.
 
-## Manutenzione
+## Maintenance
 
-**Ogni settimana**: inbox a zero; scorrere `git log` della settimana;
-lanciare `connect` per trovare collegamenti mancanti.
+**Weekly**: inbox to zero; skim the week's `git log`; run `connect` to
+find missing links.
 
-**Ogni mese**: ritirare in `archive/` le note che non servono più;
-rivedere i tag (unificare i sinonimi, eliminare quelli usati una volta
-sola); rileggere `AGENTS.md` e correggere le istruzioni che l'agente ha
-frainteso nel mese.
+**Monthly**: retire notes that are no longer needed to `archive/`;
+clean up tags (merge synonyms, drop those used only once); reread
+`AGENTS.md` and fix the instructions the agent misread during the month.
 
-**Quando cambio editor**: scrivo un nuovo adattatore in `editors/`. Nulla
-nel nucleo deve cambiare; se devo toccare il nucleo, l'ho progettato male.
+**When I change editor**: I write a new adapter in `editors/`. Nothing
+in the core must change; if I have to touch the core, I designed it
+badly.
 
-**Quando cambio agente**: scrivo il suo adattatore, cioè il file che
-legge all'avvio (che rimanda ad `AGENTS.md`) e i suoi comandi (che
-rimandano ai file in `workflows/`). Se l'agente legge `AGENTS.md`
-nativamente, non serve altro.
+**When I change agent**: I write its adapter, that is the file it reads
+at startup (pointing to `AGENTS.md`) and its commands (pointing to the
+files in `workflows/`). If the agent reads `AGENTS.md` natively,
+nothing else is needed.
 
-## Note collegate
+## Links
 
-- [Nucleo e adattatori](../notes/nucleo-e-adattatori.md)
-- [Formato delle note](../notes/formato-delle-note.md)
-- [Istruzioni agent-agnostiche](../notes/istruzioni-agent-agnostiche.md)
-- [Cattura da shell](../notes/cattura-da-shell.md)
+- [Core and adapters](../notes/core-and-adapters.md)
+- [Note format](../notes/note-format.md)
+- [Agent-agnostic instructions](../notes/agent-agnostic-instructions.md)
+- [Shell capture](../notes/shell-capture.md)
