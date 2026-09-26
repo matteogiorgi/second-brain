@@ -59,7 +59,9 @@ The full reference, if present, is `notes/note-format.md`; in short:
   in LaTeX between `$...$` and `$$...$$`. No other extensions.
 - End every note with a `## Links` section; when the note records a
   choice, add a `## Why` section right before it.
-- Language: English.
+- Language: English. Write every note in it, translating captures and
+  sources in other languages; technical terms may stay in their
+  standard form.
 
 ## Hard rules
 

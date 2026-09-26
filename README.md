@@ -188,7 +188,7 @@ export BRAIN="$HOME/brain" # the default archive
 PATH="$BRAIN/bin:$PATH"    # run capture and links from anywhere
 ```
 
-Load it with `. ~/.profile` (or log in again), read `AGENTS.md` and adapt it, then make the first commit.
+Load it with `. ~/.profile` (or log in again), read `AGENTS.md` and adapt it, starting from the notes' language (§4), then make the first commit.
 
 You can also skip the templates entirely: create the folders and write `AGENTS.md`, the workflows and the scripts yourself, following sections 5–7 and using the templates as a reference.
 
@@ -242,6 +242,8 @@ No absolute paths, which would tie the archive to one machine. No links to secti
 **Structure.** A single level-1 heading equal to `title`, level-2 sections, and **one idea per note**. When a note records a choice, a `## Why` section explains it. The last section is always `## Links`. Fenced code blocks name their language. Besides CommonMark, only extensions that stay readable as raw text are allowed: GitHub tables and LaTeX math between `$...$` and `$$...$$`.
 
 **Line wrapping.** Wrap by hand at about **72 columns**, like a commit message, so notes read well in a terminal. The alternative is one sentence per line (*semantic line breaks*), which gives cleaner diffs. Choose before writing the first note: changing later touches every file.
+
+**Language.** Each archive has one language for its notes, set in `AGENTS.md` (`Language: English.` in the template): triage writes every note in it, translating captures when needed. Pick it when you create the archive, like the wrapping, because changing it later means translating every note. One language per archive keeps notes easy to search and link; if you study in another language, set that one, so definitions keep their original wording.
 
 **Sources.** Content taken from somewhere records it in `source`, a list with one entry per source, each tagged with its kind:
 

@@ -183,5 +183,5 @@ if [ -n "$vim" ]; then
     step "with tmux, in ~/.tmux.conf: set -g focus-events on"
 fi
 [ -z "$claude" ] || step "run Claude Code inside the archive: it reads CLAUDE.md and offers /triage, /ask, /ask-save, /ask-all, /connect and /distill"
-step "read AGENTS.md and complete it with what the agent needs to know"
+step "read AGENTS.md: set the notes' language (Format section) and complete it with what the agent needs to know"
 step "first commit: cd \"$dest\" && git add -A && git commit -m \"Initial archive\""

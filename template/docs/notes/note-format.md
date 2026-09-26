@@ -16,6 +16,7 @@ means rewriting the archive.
 - UTF-8 text, LF line endings, final newline.
 - `.md` extension.
 - Lines wrapped by hand at about 72 columns, like a commit message.
+- One language for every note, the one set in `AGENTS.md`.
 
 ## Names
 
