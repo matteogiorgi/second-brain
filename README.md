@@ -1,4 +1,4 @@
-# An agnostic second brain: notes, editors and agents
+# Agnostic second brain: notes, editors and agents
 
 A **second brain** is a personal archive of notes where you collect, connect and retrieve ideas. This one is nothing but plain text files, mostly *Markdown*, versioned with *git*. Any editor reads and writes the notes; an AI agent (for example *Claude Code*) triages, links and queries them. No database, no proprietary app, no format that needs a specific program to be read.
 
