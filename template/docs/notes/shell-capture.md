@@ -27,7 +27,10 @@ the phone, a saved email, a file copied by hand) is a valid capture.
 
 Files in `inbox/` are exempt from the [format](note-format.md): no
 frontmatter, timestamped names. They become real notes only after
-triage.
+triage. A capture may start with a line naming its source, such as
+`source: lecture, Stochastic methods, 2026-09-25`: triage turns it into
+the note's `source` (see the [format](note-format.md)); without it, the
+capture counts as my own thought.
 
 ## The script
 
@@ -40,6 +43,9 @@ receives:
 - **Neither**: if standard input is a terminal, it opens the editor on
   a new file, for longer captures. The editor is `$EDITOR`, so the
   choice stays outside the script.
+
+In every mode, `-s "<kind>, <description>"` writes the `source:` line
+for me, and rejects a kind that is not in the [format](note-format.md).
 
 The file name combines date, time and PID, so two captures in the same
 second never overwrite each other. An empty capture (editor closed
@@ -74,6 +80,7 @@ chmod +x "$BRAIN/bin/capture"
 
 ```sh
 capture "review the proof of the strong Markov property"
+capture -s "lecture, Stochastic methods, 2026-09-25" "rate = mean events per unit time"
 xclip -o -selection clipboard | capture # the X clipboard
 man 1 sh | col -b | capture             # a whole man page
 ```

@@ -40,9 +40,16 @@ The full reference, if present, is `notes/note-format.md`; in short:
   (`inbox/`, `archive/inbox/`) and saved answers (`answers/`,
   `archive/answers/`) are not notes and have none.
   Optional: `updated`, `source`. No other fields.
-- `source`: when the content comes from a source (book, article,
-  lecture, a file the user gave you), describe it so it can be found
-  again: author, title, chapter, URL or lecture date. Never a file path.
+- `source`: where the content comes from, as a list with one entry
+  per source, `- <kind>: <description>`. Kinds: `lecture` (the user's
+  lecture notes), `handout` (course material from the teacher), `book`,
+  `article`, `web`, `exercise` (worked exercises), `exam` (exam papers).
+  The description lets the source be found again (course and date,
+  author and title, chapter, URL); it uses commas, never ": ", and is
+  never a file path. The user's own thoughts have no source.
+- When a note has content from more than one kind of source, every
+  paragraph or list item taken from a source ends with its kind in
+  parentheses: `(handout)`. Unmarked content is the user's own.
 - A single level-1 heading, equal to `title`; level-2 sections.
 - Markdown links relative to the current file, with the extension:
   `[text](other-note.md)`, `[text](../areas/note.md)`. Never wikilinks,

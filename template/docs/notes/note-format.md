@@ -6,9 +6,10 @@ created: 2026-09-25
 
 # Note format
 
-Conventions that every note of the [second brain](../areas/second-brain.md)
-follows. They are the most rigid part of the [core](core-and-adapters.md):
-changing them later means rewriting the archive.
+Conventions that every note of the
+[second brain](../areas/second-brain.md) follows. They are the most
+rigid part of the [core](core-and-adapters.md): changing them later
+means rewriting the archive.
 
 ## Files
 
@@ -47,14 +48,34 @@ created: 2026-09-25
 - `created`: ISO 8601 date.
 
 Optional fields, only when needed: `updated` (date of the last
-substantial revision), `source` (book, article, lecture the content
-comes from).
+substantial revision), `source` (where the content comes from).
 
-`source` is a description that lets me find the source again (author,
-title, chapter, URL, lecture date), not a file path. The source file
-does not enter the archive: if it can be found elsewhere, the reference
-is enough; if it is irreplaceable (my own notes, a photo of a
-blackboard), it is kept outside, with a normal backup.
+`source` is a list with one entry per source, each tagged with its
+kind:
+
+```yaml
+source:
+  - lecture: Stochastic methods, 2026-09-25
+  - handout: Stochastic methods, Prof. Rossi, ch. 3
+```
+
+The kinds are `lecture` (my lecture notes), `handout` (course material
+from the teacher), `book`, `article`, `web`, `exercise` (worked
+exercises) and `exam` (exam papers). My own thoughts have no source.
+The description lets me find the source again (course and date, author
+and title, chapter, URL): it uses commas, never ": ", which would break
+the YAML, and it is never a file path.
+
+When a note has content from more than one kind of source, every
+paragraph or list item taken from a source ends with its kind in
+parentheses, such as `(handout)`; what has no marker is my own. That
+way I can ask what the handouts say about something and get only their
+part.
+
+The source file does not enter the archive: if it can be found
+elsewhere, the reference is enough; if it is irreplaceable (my own
+notes, a photo of a blackboard), it is kept outside, with a normal
+backup.
 
 No other fields without first updating this note.
 

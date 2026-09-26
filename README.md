@@ -243,7 +243,17 @@ No absolute paths, which would tie the archive to one machine. No links to secti
 
 **Line wrapping.** Wrap by hand at about **72 columns**, like a commit message, so notes read well in a terminal. The alternative is one sentence per line (*semantic line breaks*), which gives cleaner diffs. Choose before writing the first note: changing later touches every file.
 
-**Sources.** Content taken from a book, a lecture or a PDF records its origin in `source`, as a description you can search for (`lecture notes, Stochastic methods, 2026-09-25`), never a file path. The source file itself **stays out of the archive**: git handles binaries badly, and every version would stay in the history forever. If the source can be found elsewhere, the reference is enough. If it is irreplaceable, such as your own handwritten notes, keep it outside the archive with a normal backup.
+**Sources.** Content taken from somewhere records it in `source`, a list with one entry per source, each tagged with its kind:
+
+```yaml
+source:
+  - lecture: Stochastic methods, 2026-09-25
+  - handout: Stochastic methods, Prof. Rossi, ch. 3
+```
+
+The kinds are `lecture` (your lecture notes), `handout` (the teacher's course material), `book`, `article`, `web`, `exercise` (worked exercises) and `exam` (exam papers); your own thoughts have no source. The description lets you find the source again, uses commas rather than `: ` (which would break the YAML), and is never a file path. When a note mixes kinds of source, each paragraph or list item taken from a source ends with its kind, such as `(handout)`, and unmarked content is your own: that is what lets you ask what the handouts alone say about something (§6.2).
+
+The source file itself **stays out of the archive**: git handles binaries badly, and every version would stay in the history forever. If the source can be found elsewhere, the reference is enough. If it is irreplaceable, such as your own handwritten notes, keep it outside the archive with a normal backup.
 
 
 
@@ -309,7 +319,7 @@ flowchart TD
     LNK --> ARC["Move the original<br/>to archive/inbox/"]
 ```
 
-The first step is the one that is easy to miss: **read every capture before touching anything**, because two captures an hour apart are often the same idea. The agent **rephrases but never adds** information. A one-line capture with no context does not become a new note. Titles and file names describe the content, not the date or the origin. A non-text file found in `inbox/` (a PDF, say) is read like any other capture but not archived; triage reports it so you can move it out of the archive. The output is a summary: captures processed and where they went, links added, open questions.
+The first step is the one that is easy to miss: **read every capture before touching anything**, because two captures an hour apart are often the same idea. The agent **rephrases but never adds** information. A one-line capture with no context does not become a new note. Titles and file names describe the content, not the date or the origin. The origin goes in `source` (§4): triage takes it from the capture's `source:` line (§7) or, for a file you hand over, from what you say it is. A non-text file found in `inbox/` (a PDF, say) is read like any other capture but not archived; triage reports it so you can move it out of the archive. The output is a summary: captures processed and where they went, links added, open questions.
 
 
 ### 6.2 Ask
@@ -318,9 +328,11 @@ You ask "what did I write about compound Poisson processes?". The agent extracts
 
 - it is **read-only**, apart from writing the answer to `answers/` when you ask to save it;
 - it **separates** what the notes say from the agent's general knowledge, which may appear only in a clearly marked part;
-- it **cites** every claim with the path of its note, and points out **gaps** and **contradictions**, which are often the most useful part of the answer.
+- it **cites** every claim with the path of its note and, when known, its kind of source, and points out **gaps** and **contradictions**, which are often the most useful part of the answer.
 
 The chat answer may be read in a terminal, where nothing is rendered: math is written in Unicode plain text (`P(X = k) = λᵏ e^(−λ) / k!`), with the LaTeX source added only when Unicode cannot express a formula clearly, and diagrams go in `mermaid` blocks.
+
+You can restrict a question to a kind of source: "according to the handouts, what is a compound Poisson process?" uses only notes and paragraphs marked `handout`, and points out where other sources disagree.
 
 Three commands run the same workflow:
 
@@ -357,7 +369,7 @@ The third check needs judgement, and that is where the agent earns its place.
 
 A saved answer has a short life: `/ask-save` writes it to `answers/`, `/ask-all` reads it, and `distill` brings what it adds into the notes, then archives it. `distill` reads each answer (all of `answers/`, or the ones you name) together with the notes it cites, and sorts its content into three kinds:
 
-- **restated**: what the cited notes already say. It is discarded;
+- **restated**: what the cited notes already say, or what comes from another saved answer (distilled with that one). It is discarded;
 - **reworked**: what the answer builds from the notes without being in any of them, such as a connection between notes, a clearer explanation, a worked example. These are the candidates;
 - **general knowledge**: the part marked as such. It becomes a candidate only if you confirm it.
 
@@ -374,7 +386,7 @@ Capturing must cost as little as possible: **no decisions and no dependencies**.
 
 > **A text file that appears in `inbox/` is a capture.**
 
-Any way of dropping a file there counts: a sync from your phone, a saved email, a manual copy. Captures need no frontmatter and get timestamped names. The `.gitignore` makes git track only `.md` and `.txt` files in `inbox/`, so a stray PDF never ends up in a commit.
+Any way of dropping a file there counts: a sync from your phone, a saved email, a manual copy. Captures need no frontmatter and get timestamped names. A capture may start with a line naming its source, `source: <kind>, <description>`, which triage turns into the note's `source` (§4). The line is optional: without it, the capture counts as your own thought. The `.gitignore` makes git track only `.md` and `.txt` files in `inbox/`, so a stray PDF never ends up in a commit.
 
 [`bin/capture`](https://github.com/matteogiorgi/second-brain/blob/main/template/core/bin/capture) is simply the most convenient way to honour that contract:
 
@@ -387,9 +399,12 @@ xclip -o -selection clipboard | capture
 
 # nothing: opens $EDITOR on the new file, for longer captures
 capture
+
+# -s: where it comes from, written as the first line "source: ..."
+capture -s "lecture, Stochastic methods, 2026-09-25" "the rate is the mean number of events per unit time"
 ```
 
-It names each file with date, time and PID, so two captures in the same second never collide. An empty capture (editor closed without saving, empty pipe, blank text) leaves no file behind. If no archive can be found, it stops with an error instead of creating an inbox in the wrong place. From Vim, `:'<,'>w !capture` captures the visual selection.
+It names each file with date, time and PID, so two captures in the same second never collide. An empty capture (editor closed without saving, empty pipe, blank text) leaves no file behind. With `-s`, it rejects a kind of source that is not in the list of §4, so a typo never reaches the notes; the list is repeated in the script, so a new kind must be added to `AGENTS.md`, `bin/capture` and, if you have it, `notes/note-format.md`. If no archive can be found, it stops with an error instead of creating an inbox in the wrong place. From Vim, `:'<,'>w !capture` captures the visual selection.
 
 
 
@@ -484,23 +499,24 @@ Every instruction the agent misread during the month was badly written. Rewrite 
 
 ## 10. Design choices at a glance
 
-| Choice                              | Rejected alternative               | Reason                                                     |
-|-------------------------------------|------------------------------------|------------------------------------------------------------|
-| relative links with extension       | `[[wikilinks]]`                    | plain Markdown: GitHub, pandoc and `gf` understand it      |
-| ASCII kebab-case names              | free names with spaces and accents | safe in any shell, identical on every file system          |
-| flat `notes/`                       | subfolders by topic                | ideas span topics; notes that never move never break links |
-| three frontmatter fields            | rich metadata                      | every field must be maintained across the whole archive    |
-| 72-column wrapping                  | one sentence per line              | readable as text; slightly noisier diffs                   |
-| `AGENTS.md` + `workflows/`          | `CLAUDE.md` + `.claude/commands/`  | instructions are core, not owned by one agent              |
-| workflows in prose                  | structured configuration           | every agent understands prose, and so does a person        |
-| the agent never commits             | automatic commits                  | reviewing the diff is how the system improves              |
-| the agent asks when in doubt        | the agent decides                  | misplaced notes are the hardest to find                    |
-| capture as a contract on `inbox/`   | capture inside an app              | new entry points without touching anything else            |
-| POSIX shell scripts                 | Python, Node, ...                  | nothing to install, and they will still run in ten years   |
-| binary sources outside the archive  | PDFs and images in the repo        | only text in the core; git handles binaries badly          |
-| saved answers as a secondary source | answers discarded, or in `inbox/`  | used only on request (`/ask-all`), never overriding notes  |
-| a `distill` workflow for answers    | answers moved to `inbox/`          | triage would duplicate notes and adopt the agent's guesses |
-| Unicode math in chat answers        | LaTeX in chat answers              | readable in a terminal; notes keep LaTeX                   |
+| Choice                              | Rejected alternative               | Reason                                                        |
+|-------------------------------------|------------------------------------|---------------------------------------------------------------|
+| relative links with extension       | `[[wikilinks]]`                    | plain Markdown: GitHub, pandoc and `gf` understand it         |
+| ASCII kebab-case names              | free names with spaces and accents | safe in any shell, identical on every file system             |
+| flat `notes/`                       | subfolders by topic                | ideas span topics; notes that never move never break links    |
+| three frontmatter fields            | rich metadata                      | every field must be maintained across the whole archive       |
+| 72-column wrapping                  | one sentence per line              | readable as text; slightly noisier diffs                      |
+| `AGENTS.md` + `workflows/`          | `CLAUDE.md` + `.claude/commands/`  | instructions are core, not owned by one agent                 |
+| workflows in prose                  | structured configuration           | every agent understands prose, and so does a person           |
+| the agent never commits             | automatic commits                  | reviewing the diff is how the system improves                 |
+| the agent asks when in doubt        | the agent decides                  | misplaced notes are the hardest to find                       |
+| capture as a contract on `inbox/`   | capture inside an app              | new entry points without touching anything else               |
+| POSIX shell scripts                 | Python, Node, ...                  | nothing to install, and they will still run in ten years      |
+| binary sources outside the archive  | PDFs and images in the repo        | only text in the core; git handles binaries badly             |
+| sources as a list tagged by kind    | one free-text `source`             | a note mixes sources; questions can be restricted to one kind |
+| saved answers as a secondary source | answers discarded, or in `inbox/`  | used only on request (`/ask-all`), never overriding notes     |
+| a `distill` workflow for answers    | answers moved to `inbox/`          | triage would duplicate notes and adopt the agent's guesses    |
+| Unicode math in chat answers        | LaTeX in chat answers              | readable in a terminal; notes keep LaTeX                      |
 
 The reason behind all of them is the same. Tools change faster than ideas, and AI agents change every few months, while plain text and git last for decades. Separating core and adapters keeps what you have built up (notes, conventions, procedures) independent of whichever tool is in fashion.
 

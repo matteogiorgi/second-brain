@@ -10,6 +10,8 @@ scratch.
 
 The user's question and, optionally:
 
+- a restriction to a kind of source ("according to the handouts",
+  "from my lecture notes"), one of the kinds listed in `AGENTS.md`;
 - the request to save the answer;
 - the request to include saved answers, that is the files in
   `answers/`, among the sources.
@@ -25,20 +27,26 @@ The user's question and, optionally:
 3. Read the relevant notes in full and follow their links one level
    deep, to gather context. Read the relevant saved answers in full too,
    if included.
-4. Build the answer from what the notes say. Saved answers are a
+4. If the question is restricted to a kind of source, keep only the
+   notes whose `source` list has that kind and, in notes with several
+   kinds, only the paragraphs marked with it.
+5. Build the answer from what the notes say. Saved answers are a
    secondary source: use them to add what the notes do not cover, never
    to override a note. Ignore the part of a saved answer marked as
    general knowledge: only what it drew from the notes counts.
-5. If the notes (and, if included, the saved answers) are not enough to
+6. If the notes (and, if included, the saved answers) are not enough to
    answer, say so explicitly. You may add general knowledge only in a
    separate part, marked as such.
 
 ## Output
 
 - The answer, citing for every claim the file it comes from, with its
-  path from the archive root (`notes/poisson-process.md`). Claims taken
-  from a saved answer cite its path in `answers/` and say that it is a
-  saved answer, not a note.
+  path from the archive root and, when known, the kind of source:
+  `notes/poisson-process.md` (handout). Claims taken from a saved
+  answer cite its path in `answers/` and say that it is a saved answer,
+  not a note.
+- If the question was restricted to a kind of source, say so, and
+  point out where other kinds of source disagree.
 - If any, the gaps: what is missing from the archive to answer well.
 - If any, the contradictions: notes that say incompatible things, or a
   saved answer that disagrees with a note.

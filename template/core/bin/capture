@@ -2,9 +2,14 @@
 # capture: write a raw capture to the archive's inbox
 #
 # usage:
-#   capture "text of the capture"
-#   command | capture
-#   capture                  (from a terminal: opens $EDITOR)
+#   capture [-s source] "text of the capture"
+#   command | capture [-s source]
+#   capture [-s source]      (from a terminal: opens $EDITOR)
+#
+# -s names where the capture comes from, as "<kind>, <description>"
+# (e.g. "lecture, Stochastic methods, 2026-09-25"): it becomes the
+# capture's first line, "source: ...", which triage turns into the
+# note's source.
 #
 # The archive is the one you are in (the current directory or one of
 # its parents); outside an archive, the one containing the script; if
@@ -14,6 +19,56 @@
 # -e: stop at the first failing command; -u: treat unset variables as
 # errors instead of silently expanding them to an empty string
 set -eu
+
+# the kinds of source, as listed in AGENTS.md (and notes/note-format.md,
+# if present): keep them in sync
+kinds='lecture handout book article web exercise exam'
+
+usage() {
+    cat <<EOF
+usage: capture [-s source] [text ...]
+
+  -s source   where the capture comes from, as "<kind>, <description>",
+              e.g. "lecture, Stochastic methods, 2026-09-25"
+              kinds: $kinds
+  -h          show this help
+
+With text, the text is the capture; otherwise the capture is read from
+standard input or, from a terminal, written in \$EDITOR.
+EOF
+}
+
+# parse the options; getopts stops at the first argument that is not an
+# option, and OPTIND is the index of that argument
+src=''
+while getopts 's:h' opt; do
+    case $opt in
+    s) src=$OPTARG ;;
+    h)
+        usage
+        exit 0
+        ;;
+    *)
+        usage >&2
+        exit 1
+        ;;
+    esac
+done
+shift $((OPTIND - 1)) # what is left is the text, if any
+
+# the kind is the part of the source before the first comma, without
+# spaces, and must be one of $kinds (the spaces around both sides of
+# the match make it match a whole word, not a piece of one)
+if [ -n "$src" ]; then
+    kind=$(printf '%s' "${src%%,*}" | tr -d ' ')
+    case " $kinds " in
+    *" $kind "*) ;;
+    *)
+        echo "capture: unknown kind of source \"$kind\" (one of: $kinds)" >&2
+        exit 1
+        ;;
+    esac
+fi
 
 # an archive has AGENTS.md, inbox/ and notes/
 is_archive() {
@@ -71,4 +126,12 @@ if ! grep -q '[^[:space:]]' "$f" 2>/dev/null; then
     rm -f "$f"
     echo "capture: empty capture, nothing saved" >&2
     exit 1
+fi
+
+# with -s, the source line goes first, where triage looks for it; it is
+# added only now, so that a capture made of a source line alone still
+# counts as empty
+if [ -n "$src" ]; then
+    { printf 'source: %s\n' "$src" && cat "$f"; } >"$f.tmp"
+    mv "$f.tmp" "$f"
 fi

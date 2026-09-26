@@ -26,8 +26,18 @@ images) too: read their content like any other capture.
    - **Ask**: if the capture is ambiguous, too short to make sense of,
      or could go in several places, do not decide: put it in the list
      of questions.
-4. If the content comes from a source (a book, a lecture, a file the
-   user gave you), fill in `source` in the note.
+4. Record where the content comes from, in the note's `source` list
+   (see the format in `AGENTS.md`):
+   - a capture may start with a line `source: <kind>, <description>`,
+     for example `source: lecture, Stochastic methods, 2026-09-25`;
+     turn it into an entry and do not copy the line into the note;
+   - for a file the user gives you, the user says what it is;
+   - a capture with no source is the user's own thought: it adds no
+     entry. If a source is hinted at but its kind is unclear, ask.
+
+   If the note now has content from more than one kind of source, end
+   every paragraph or list item taken from a source with its kind in
+   parentheses, marking the content that was already there too.
 5. For every note created or changed, look for related notes and add
    links in both directions, in the `## Links` section or in the text
    where the reference is natural.

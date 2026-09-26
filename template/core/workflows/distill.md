@@ -31,8 +31,9 @@ are named, every file in `answers/`.
    not enough.
 4. Present the proposals and wait for confirmation.
 5. Apply only the confirmed proposals, in the note format, and update
-   `updated` in every note you change. For confirmed general knowledge,
-   fill in `source` if the answer names one.
+   `updated` in every note you change. Content reworked from notes adds
+   no `source` entry; confirmed general knowledge adds one only if the
+   answer names its source.
 6. Move every distilled answer to `archive/answers/` (create the folder
    if missing), keeping its name, so that it is no longer used as a
    source. An answer with nothing to distill is moved too. An answer
