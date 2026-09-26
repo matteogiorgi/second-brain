@@ -1,0 +1,10 @@
+remote_theme: matteogiorgi/matteogiorgi.github.io
+plugins:
+  - jekyll-seo-tag
+
+kramdown:
+  smart_quotes: ["apos", "apos", "quot", "quot"]
+
+# modelli di file per init.sh: non sono pagine del sito
+exclude:
+  - template/
