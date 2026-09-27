@@ -48,7 +48,7 @@ Every arrow points **towards** the core: that is the whole architecture.
 
 The **core** holds everything of value and knows nothing about tools. **Adapters** know everything about the core and hold nothing of their own. It is the *hexagonal architecture* (*ports and adapters*) applied to notes: the core defines the contract (the format, the instructions) and each tool conforms to it.
 
-The rule of thumb: **something belongs to the core if it still makes sense after uninstalling every editor and every agent.**
+> The rule of thumb: something belongs to the core if it still makes sense after uninstalling every editor and every agent.
 
 | Core                                   | Adapters                                   |
 |----------------------------------------|--------------------------------------------|
@@ -114,7 +114,7 @@ The `projects/` / `areas/` / `archive/` split is a simplified version of Tiago F
 
 - **`notes/` is flat**, with no subfolders by topic. Structure comes from tags and links: an idea can belong to several topics, and a note that never moves never breaks the links pointing at it.
 - **`archive/inbox/`** receives captures once triage has turned them into notes, so you can check that nothing was lost. **`archive/answers/`** does the same for saved answers once `distill` has brought their new content into notes.
-- **The rest of `archive/`** holds *retired* notes, such as a finished project or a superseded note. A retired note keeps its original folder (`projects/exam.md` → `archive/projects/exam.md`). Moving it changes relative paths, so its own links and the links pointing to it must be updated. Links from active notes that you forget to update show up as broken links in `connect`.
+- **The rest of `archive/`** holds *retired* notes, such as a finished project or a superseded note. A retired note keeps its original folder (`projects/exam.md` $\to$ `archive/projects/exam.md`). Moving it changes relative paths, so its own links and the links pointing to it must be updated. Links from active notes that you forget to update show up as broken links in `connect`.
 - **`answers/`** holds `ask` answers you asked to save. They are not notes: `ask` searches them only on request (§6.2), and notes never link to them. They are versioned like everything else.
 
 
@@ -208,9 +208,9 @@ A folder counts as an archive if it has `AGENTS.md`, `inbox/` and `notes/`. So `
 
 ## 4. Note format
 
-The format is the most rigid part of the core: changing it later means rewriting the archive. The only criterion is that **every tool must understand it without extensions**. The result is *CommonMark* with *YAML* frontmatter and relative links.
+The format is the most rigid part of the core: changing it later means rewriting the archive. The only criterion is that every tool must understand it without extensions. The result is *CommonMark* with *YAML* frontmatter and relative links.
 
-**File names.** UTF-8, LF line endings, `.md`. Lowercase **ASCII kebab-case** (`compound-poisson-processes.md`), descriptive and **stable**, because every rename breaks links. Two exceptions have fixed-format names: `journal/YYYY-MM-DD.md`, and the timestamped files in `inbox/`.
+**File names.** UTF-8, LF line endings, `.md`. Lowercase *ASCII kebab-case* (`compound-poisson-processes.md`), descriptive and stable, because every rename breaks links. Two exceptions have fixed-format names: `journal/YYYY-MM-DD.md`, and the timestamped files in `inbox/`.
 
 **Frontmatter.** Every note starts with three required fields (raw captures and saved answers are not notes, and have none):
 
@@ -224,7 +224,7 @@ created: 2026-09-25
 
 Two fields are optional: `updated`, the date of the last *substantial* revision, and `source`. No other fields are allowed, because every extra field has to be maintained on hundreds of notes.
 
-**Links.** Use standard Markdown links, **relative to the current file**, with the extension:
+**Links.** Use standard Markdown links, relative to the current file, with the extension:
 
 ```markdown
 A generalisation of the [Poisson process](poisson-process.md); see the
@@ -237,11 +237,11 @@ A generalisation of the [Poisson process](poisson-process.md); see the
 | Vim without plugins             | `gf` opens the file       | needs configuration      |
 | Backlinks with `grep`           | `grep -r '[(/]note\.md)'` | `grep -r '\[\[note\]\]'` |
 
-No absolute paths, which would tie the archive to one machine. No links to sections: tools generate heading anchors differently, and a section worth linking is probably worth its own note. **Link only to notes that exist**, so the agent cannot scatter dead links around.
+No absolute paths, which would tie the archive to one machine. No links to sections: tools generate heading anchors differently, and a section worth linking is probably worth its own note. Link only to notes that exist, so the agent cannot scatter dead links around.
 
-**Structure.** A single level-1 heading equal to `title`, level-2 sections, and **one idea per note**. When a note records a choice, a `## Why` section explains it. The last section is always `## Links`. Fenced code blocks name their language. Besides CommonMark, only extensions that stay readable as raw text are allowed: GitHub tables and LaTeX math between `$...$` and `$$...$$`.
+**Structure.** A single level-1 heading equal to `title`, level-2 sections, and one idea per note. When a note records a choice, a `## Why` section explains it. The last section is always `## Links`. Fenced code blocks name their language. Besides CommonMark, only extensions that stay readable as raw text are allowed: GitHub tables and LaTeX math between `$...$` and `$$...$$`.
 
-**Line wrapping.** Wrap by hand at about **72 columns**, like a commit message, so notes read well in a terminal. The alternative is one sentence per line (*semantic line breaks*), which gives cleaner diffs. Choose before writing the first note: changing later touches every file.
+**Line wrapping.** Wrap by hand at about 72 columns, like a commit message, so notes read well in a terminal. The alternative is one sentence per line (*semantic line breaks*), which gives cleaner diffs. Choose before writing the first note: changing later touches every file.
 
 **Language.** Each archive has one language for its notes, set in `AGENTS.md` (`Language: English.` in the template): triage writes every note in it, translating captures when needed. Pick it when you create the archive, like the wrapping, because changing it later means translating every note. One language per archive keeps notes easy to search and link; if you study in another language, set that one, so definitions keep their original wording.
 
@@ -255,28 +255,28 @@ source:
 
 The kinds are `lecture` (your lecture notes), `handout` (the teacher's course material), `book`, `article`, `web`, `exercise` (worked exercises) and `exam` (exam papers); your own thoughts have no source. The description lets you find the source again, uses commas rather than `: ` (which would break the YAML), and is never a file path. When a note mixes kinds of source, each paragraph or list item taken from a source ends with its kind, such as `(handout)`, and unmarked content is your own: that is what lets you ask what the handouts alone say about something (§6.2).
 
-The source file itself **stays out of the archive**: git handles binaries badly, and every version would stay in the history forever. If the source can be found elsewhere, the reference is enough. If it is irreplaceable, such as your own handwritten notes, keep it outside the archive with a normal backup.
+The source file itself stays out of the archive: git handles binaries badly, and every version would stay in the history forever. If the source can be found elsewhere, the reference is enough. If it is irreplaceable, such as your own handwritten notes, keep it outside the archive with a normal backup.
 
 
 
 
 ## 5. Agent instructions
 
-Every agent looks for instructions in a different place (`CLAUDE.md` for Claude Code, other files for other agents). Instructions written there belong to that agent. Yet they are the most valuable part of working with an agent, so they belong in the core, split into **two neutral levels**:
+Every agent looks for instructions in a different place (`CLAUDE.md` for Claude Code, other files for other agents). Instructions written there belong to that agent. Yet they are the most valuable part of working with an agent, so they belong in the core, split into two neutral levels:
 
-- **`AGENTS.md`**, at the root: what the agent must *always* know. It holds the purpose, the structure, a summary of the format, the **hard rules**, and the list of workflows. [`AGENTS.md`](https://agents.md) is an open convention that several agents read natively. It contains no *why*: that lives in the notes. `AGENTS.md` is written for whoever **executes**, the notes for whoever **understands**.
+- **`AGENTS.md`**, at the root: what the agent must *always* know. It holds the purpose, the structure, a summary of the format, the hard rules, and the list of workflows. [`AGENTS.md`](https://agents.md) is an open convention that several agents read natively. It contains no *why*: that lives in the notes. `AGENTS.md` is written for whoever **executes**, the notes for whoever understands.
 - **`workflows/`**: what the agent does *when asked*, one procedure per file.
 
 The split keeps the agent's context small: `AGENTS.md` is loaded in every session, a workflow only when it is used. A single all-in-one file keeps growing until the rules drown among the procedures.
 
-The hard rules are the heart of `AGENTS.md`: never delete files (move them to `archive/`), never link to missing notes, never edit outside the archive, never copy binaries into it, never touch tool configuration unprompted, **never commit**, never invent content, and **ask when in doubt**. Two of them need a reason:
-
-- **No commits by the agent.** Reviewing the diff is when you see where the agent misreads its instructions, and fix them. If the agent commits, the system keeps working but stops improving.
-- **Ask when in doubt.** It slows triage a little, but a note created in the wrong place under the wrong name is the hardest kind to find later.
+> The hard rules are the heart of `AGENTS.md`: never delete files (move them to `archive/`), never link to missing notes, never edit outside the archive, never copy binaries into it, never touch tool configuration unprompted, never commit, never invent content, and ask when in doubt. Two of them need a reason:
+>
+> - **No commits by the agent.** Reviewing the diff is when you see where the agent misreads its instructions, and fix them. If the agent commits, the system keeps working but stops improving.
+> - **Ask when in doubt.** It slows triage a little, but a note created in the wrong place under the wrong name is the hardest kind to find later.
 
 Every workflow has the same sections: **Purpose, Input, Steps, Output, Constraints**. It is written in imperative prose, with no agent syntax: arguments are named in words ("the user's question"), never as a tool placeholder like `$ARGUMENTS`. A person must be able to follow it without an agent. If they cannot, it is badly written for the agent too. Without an agent the system gets slower, but it still works.
 
-**Adapting an agent** takes at most two things:
+Adapting an agent takes at most two things:
 
 - **A startup file**, only if the agent does not read `AGENTS.md` natively. For Claude Code, the whole `CLAUDE.md` is `@AGENTS.md`. For agents without imports, one sentence: "Read `AGENTS.md` and follow it."
 - **Commands**, one or two lines each, that point to a workflow. `.claude/commands/ask.md` becomes `/ask`:
@@ -326,7 +326,7 @@ The first step is the one that is easy to miss: **read every capture before touc
 
 ### 6.2 Ask
 
-You ask "what did I write about compound Poisson processes?". The agent extracts the key concepts and their synonyms, searches `notes/`, `projects/`, `areas/` and `journal/` (and `archive/` only if needed), reads the relevant notes in full, follows their links **one level deep**, and answers. Three choices make it trustworthy:
+You ask "what did I write about compound Poisson processes?". The agent extracts the key concepts and their synonyms, searches `notes/`, `projects/`, `areas/` and `journal/` (and `archive/` only if needed), reads the relevant notes in full, follows their links one level deep, and answers. Three choices make it trustworthy:
 
 - it is **read-only**, apart from writing the answer to `answers/` when you ask to save it;
 - it **separates** what the notes say from the agent's general knowledge, which may appear only in a clearly marked part;
@@ -357,7 +357,7 @@ Saved answers are worth reusing because they can hold a reworking the notes lack
 - **orphan notes**, which no other note links to. `journal/` is exempt, since daily notes are entry points by nature, though links *from* the journal count. Links from `archive/` do not count;
 - **missing links** between notes about the same concepts. The bar is high: propose a link only if one note really helps to understand the other. A shared tag is not enough.
 
-It is cautious: it presents its findings and **waits for confirmation**; it proposes fixes for broken links without applying them, and adds confirmed links **in both directions**. The first two checks are mechanical, so [`bin/links`](https://github.com/matteogiorgi/second-brain/blob/main/template/core/bin/links) runs them over the whole archive without an agent, ignoring links inside code blocks:
+It is cautious: it presents its findings and waits for confirmation; it proposes fixes for broken links without applying them, and adds confirmed links in both directions. The first two checks are mechanical, so [`bin/links`](https://github.com/matteogiorgi/second-brain/blob/main/template/core/bin/links) runs them over the whole archive without an agent, ignoring links inside code blocks:
 
 ```
 broken: notes/lonely.md -> ../notes/missing.md
@@ -375,7 +375,7 @@ A saved answer has a short life: `/ask-save` writes it to `answers/`, `/ask-all`
 - **reworked**: what the answer builds from the notes without being in any of them, such as a connection between notes, a clearer explanation, a worked example. These are the candidates;
 - **general knowledge**: the part marked as such. It becomes a candidate only if you confirm it.
 
-For each candidate it proposes a destination, as triage does: an existing note, usually one the answer cites, or a new one; a connection becomes a link in both directions. Like `connect`, it **waits for confirmation**, because the content was written by the agent, not by you. Citations of saved answers are not carried over, since notes never link to them. Finally each distilled answer moves to `archive/answers/`, so `/ask-all` no longer uses it.
+For each candidate it proposes a destination, as triage does: an existing note, usually one the answer cites, or a new one; a connection becomes a link in both directions. Like `connect`, it waits for confirmation, because the content was written by the agent, not by you. Citations of saved answers are not carried over, since notes never link to them. Finally each distilled answer moves to `archive/answers/`, so `/ask-all` no longer uses it.
 
 Triage cannot do this job: it would treat the answer as your capture, duplicating what the notes already say and adopting the agent's general knowledge as yours.
 
@@ -415,7 +415,7 @@ It names each file with date, time and PID, so two captures in the same second n
 
 Everything editor-specific lives in `editors/` or in your own dotfiles. Deleting `editors/` must not break anything.
 
-**Vim.** The natural setup is **tmux with two panes**, Vim in one and the agent in the other, both inside the archive. [`editors/vim/brain.vim`](https://github.com/matteogiorgi/second-brain/blob/main/template/vim/editors/vim/brain.vim) is a few lines, loaded from your vimrc with `execute 'source' $BRAIN . '/editors/vim/brain.vim'`:
+**Vim.** The natural setup is Tmux with two panes, Vim in one and the agent in the other, both inside the archive. [`editors/vim/brain.vim`](https://github.com/matteogiorgi/second-brain/blob/main/template/vim/editors/vim/brain.vim) is a few lines, loaded from your vimrc with `execute 'source' $BRAIN . '/editors/vim/brain.vim'`:
 
 - `autoread` plus `checktime` on `FocusGained`, `BufEnter` and `CursorHold` reload a note the agent rewrote in the other pane. Inside tmux this needs `set -g focus-events on` in `~/.tmux.conf`;
 - `textwidth=72`, applied only to the archive's notes;
@@ -424,7 +424,7 @@ Everything editor-specific lives in `editors/` or in your own dotfiles. Deleting
 
 **VS Code.** The Claude Code extension runs the agent in a side panel and shows its edits in VS Code's diff viewer. The built-in Markdown preview renders math with KaTeX. Note-graph extensions such as *Foam* are fine, as long as they are configured **not** to write wikilinks.
 
-Some conveniences stay tied to a tool, and that is acceptable **as long as none becomes indispensable**:
+Some conveniences stay tied to a tool, and that is acceptable as long as none becomes indispensable:
 
 | Convenience               | Where             | Agnostic substitute                             |
 |---------------------------|-------------------|-------------------------------------------------|
@@ -494,7 +494,7 @@ Two warning signs point to a design problem:
 - **If changing tools means touching the core**, the boundary is in the wrong place.
 - **If an adapter grows**, it is absorbing logic. Move that logic back into the core: into `AGENTS.md` if it is a rule, into `workflows/` if it is a procedure, into `bin/` if it is mechanical.
 
-Every instruction the agent misread during the month was badly written. Rewrite it more precisely instead of repeating the correction in every session. And **start small**, with the minimal structure and three workflows: a system you use beats a perfect one, and the conventions are refined once you see where the agent errs.
+Every instruction the agent misread during the month was badly written. Rewrite it more precisely instead of repeating the correction in every session. And start small, with the minimal structure and three workflows: a system you use beats a perfect one, and the conventions are refined once you see where the agent errs.
 
 
 
