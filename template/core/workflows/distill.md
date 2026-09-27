@@ -16,7 +16,8 @@ are named, every file in `answers/`.
 1. Read every answer in full, together with the notes it cites.
 2. Split the content of each answer into three kinds:
    - **Restated**: what the cited notes already say, or what the answer
-     takes from another saved answer (it is distilled with that one).
+     takes from another saved answer (it gets distilled from that
+     answer instead).
      Discard it.
    - **Reworked**: what the answer builds from the notes without being
      in any of them: a connection between notes, a clearer explanation,

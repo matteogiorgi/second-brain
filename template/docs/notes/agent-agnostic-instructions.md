@@ -8,10 +8,10 @@ created: 2026-09-25
 
 ## The problem
 
-Every AI agent looks for its instructions in a different place: a file
-with a specific name at the project root, a commands folder with its
-own syntax. If I write the instructions there, the system belongs to
-that agent. Yet the instructions are the most valuable part of working
+Many AI agents look for their instructions in a place of their own: a
+file with a specific name at the project root, a commands folder with
+its own syntax. If I write the instructions there, the system belongs
+to one agent. Yet the instructions are the most valuable part of working
 with an agent, because they accumulate everything I have learned about
 making it work well, so they belong to the
 [core](core-and-adapters.md).

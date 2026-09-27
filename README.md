@@ -2,7 +2,7 @@
 
 A **second brain** is a personal archive of notes where you collect, connect and retrieve ideas. This one is nothing but plain text files, mostly *Markdown*, versioned with *git*. Any editor reads and writes the notes; an AI agent (for example *Claude Code*) triages, links and queries them. No database, no proprietary app, no format that needs a specific program to be read.
 
-The design rests on one constraint: **tool agnosticism**, on two axes. The archive must not depend on the editor (Vim, VS Code, anything else) nor on the agent (Claude Code today, another one tomorrow). The answer is the same on both axes: a plain-text **core** that holds everything of value, plus thin, replaceable **adapters** that plug a tool into the core.
+The design rests on one constraint: **tool agnosticism**, on two axes. The archive must depend neither on the editor (Vim, VS Code, anything else) nor on the agent (Claude Code today, another one tomorrow). The answer is the same on both axes: a plain-text **core** that holds everything of value, plus thin, replaceable **adapters** that plug a tool into the core.
 
 This repository contains this document, the `init.sh` script and the templates it installs (in `template/`).
 
@@ -53,7 +53,7 @@ The **core** holds everything of value and knows nothing about tools. **Adapters
 | Core                                   | Adapters                                   |
 |----------------------------------------|--------------------------------------------|
 | the notes, in their format             | `CLAUDE.md` (one line: `@AGENTS.md`)       |
-| the folder structure                   | `.claude/commands/*.md` (one or two lines) |
+| the folder structure                   | `.claude/commands/*.md` (a few lines)      |
 | `AGENTS.md`, the agent instructions    | `editors/vim/brain.vim`                    |
 | `workflows/`, the procedures, in prose | VS Code settings and extensions            |
 | `bin/`, POSIX shell scripts            | agent hooks that call `bin/`               |
@@ -115,7 +115,7 @@ The `projects/` / `areas/` / `archive/` split is a simplified version of Tiago F
 - **`notes/` is flat**, with no subfolders by topic. Structure comes from tags and links: an idea can belong to several topics, and a note that never moves never breaks the links pointing at it.
 - **`archive/inbox/`** receives captures once triage has turned them into notes, so you can check that nothing was lost. **`archive/answers/`** does the same for saved answers once `distill` has brought their new content into notes.
 - **The rest of `archive/`** holds *retired* notes, such as a finished project or a superseded note. A retired note keeps its original folder (`projects/exam.md` $\to$ `archive/projects/exam.md`). Moving it changes relative paths, so its own links and the links pointing to it must be updated. Links from active notes that you forget to update show up as broken links in `connect`.
-- **`answers/`** holds `ask` answers you asked to save. They are not notes: `ask` searches them only on request (§6.2), and notes never link to them. They are versioned like everything else.
+- **`answers/`** holds `ask` answers you asked to save. They are not notes: `ask` searches them only on request ([§6.2](#62-ask)), and notes never link to them. They are versioned like everything else.
 
 
 
@@ -188,9 +188,9 @@ export BRAIN="$HOME/brain" # the default archive
 PATH="$BRAIN/bin:$PATH"    # run capture and links from anywhere
 ```
 
-Load it with `. ~/.profile` (or log in again), read `AGENTS.md` and adapt it, starting from the notes' language (§4), then make the first commit.
+Load it with `. ~/.profile` (or log in again), read `AGENTS.md` and adapt it, starting from the notes' language ([§4](#4-note-format)), then make the first commit.
 
-You can also skip the templates entirely: create the folders and write `AGENTS.md`, the workflows and the scripts yourself, following sections 5–7 and using the templates as a reference.
+You can also skip the templates entirely: create the folders and write `AGENTS.md`, the workflows and the scripts yourself, following sections [5](#5-agent-instructions)–[7](#7-capturing-from-the-shell) and using the templates as a reference.
 
 
 ### 3.3 More than one archive
@@ -208,9 +208,9 @@ A folder counts as an archive if it has `AGENTS.md`, `inbox/` and `notes/`. So `
 
 ## 4. Note format
 
-The format is the most rigid part of the core: changing it later means rewriting the archive. The only criterion is that every tool must understand it without extensions. The result is *CommonMark* with *YAML* frontmatter and relative links.
+The format is the most rigid part of the core: changing it later means rewriting the archive. The only criterion is that every tool must understand it without plugins. The result is *CommonMark* with *YAML* frontmatter and relative links.
 
-**File names.** UTF-8, LF line endings, `.md`. Lowercase *ASCII kebab-case* (`compound-poisson-processes.md`), descriptive and stable, because every rename breaks links. Two exceptions have fixed-format names: `journal/YYYY-MM-DD.md`, and the timestamped files in `inbox/`.
+**File names.** UTF-8, LF line endings, `.md`. Lowercase *ASCII kebab-case* (`compound-poisson-processes.md`), descriptive and stable, because every rename breaks links. Two exceptions: `journal/YYYY-MM-DD.md`, and the captures in `inbox/`, whose names do not matter (`bin/capture` timestamps them).
 
 **Frontmatter.** Every note starts with three required fields (raw captures and saved answers are not notes, and have none):
 
@@ -253,7 +253,7 @@ source:
   - handout: Stochastic methods, Prof. Rossi, ch. 3
 ```
 
-The kinds are `lecture` (your lecture notes), `handout` (the teacher's course material), `book`, `article`, `web`, `exercise` (worked exercises) and `exam` (exam papers); your own thoughts have no source. The description lets you find the source again, uses commas rather than `: ` (which would break the YAML), and is never a file path. When a note mixes kinds of source, each paragraph or list item taken from a source ends with its kind, such as `(handout)`, and unmarked content is your own: that is what lets you ask what the handouts alone say about something (§6.2).
+The kinds are `lecture` (your lecture notes), `handout` (the teacher's course material), `book`, `article`, `web`, `exercise` (worked exercises) and `exam` (exam papers); your own thoughts have no source. The description lets you find the source again, uses commas rather than `: ` (which would break the YAML), and is never a file path. When a note mixes kinds of source, each paragraph or list item taken from a source ends with its kind, such as `(handout)`, and unmarked content is your own: that is what lets you ask what the handouts alone say about something ([§6.2](#62-ask)).
 
 The source file itself stays out of the archive: git handles binaries badly, and every version would stay in the history forever. If the source can be found elsewhere, the reference is enough. If it is irreplaceable, such as your own handwritten notes, keep it outside the archive with a normal backup.
 
@@ -262,9 +262,9 @@ The source file itself stays out of the archive: git handles binaries badly, and
 
 ## 5. Agent instructions
 
-Every agent looks for instructions in a different place (`CLAUDE.md` for Claude Code, other files for other agents). Instructions written there belong to that agent. Yet they are the most valuable part of working with an agent, so they belong in the core, split into two neutral levels:
+Many agents look for instructions in a place of their own (`CLAUDE.md` for Claude Code, other files for other agents). Instructions written there belong to one agent. Yet they are the most valuable part of working with an agent, so they belong in the core, split into two neutral levels:
 
-- **`AGENTS.md`**, at the root: what the agent must *always* know. It holds the purpose, the structure, a summary of the format, the hard rules, and the list of workflows. [`AGENTS.md`](https://agents.md) is an open convention that several agents read natively. It contains no *why*: that lives in the notes. `AGENTS.md` is written for whoever **executes**, the notes for whoever understands.
+- **`AGENTS.md`**, at the root: what the agent must *always* know. It holds the purpose, the structure, a summary of the format, the hard rules, and the list of workflows. [`AGENTS.md`](https://agents.md) is an open convention that several agents read natively. It contains no *why*: that lives in the notes about the system (installed by `--docs`). `AGENTS.md` is written for whoever **executes**, the notes for whoever understands.
 - **`workflows/`**: what the agent does *when asked*, one procedure per file.
 
 The split keeps the agent's context small: `AGENTS.md` is loaded in every session, a workflow only when it is used. A single all-in-one file keeps growing until the rules drown among the procedures.
@@ -279,7 +279,7 @@ Every workflow has the same sections: **Purpose, Input, Steps, Output, Constrain
 Adapting an agent takes at most two things:
 
 - **A startup file**, only if the agent does not read `AGENTS.md` natively. For Claude Code, the whole `CLAUDE.md` is `@AGENTS.md`. For agents without imports, one sentence: "Read `AGENTS.md` and follow it."
-- **Commands**, one or two lines each, that point to a workflow. `.claude/commands/ask.md` becomes `/ask`:
+- **Commands**, a few lines each, that point to a workflow. `.claude/commands/ask.md` becomes `/ask`:
 
   ```markdown
   Run the workflow described in workflows/ask.md.
@@ -321,7 +321,7 @@ flowchart TD
     LNK --> ARC["Move the original<br/>to archive/inbox/"]
 ```
 
-The first step is the one that is easy to miss: **read every capture before touching anything**, because two captures an hour apart are often the same idea. The agent **rephrases but never adds** information. A one-line capture with no context does not become a new note. Titles and file names describe the content, not the date or the origin. The origin goes in `source` (§4): triage takes it from the capture's `source:` line (§7) or, for a file you hand over, from what you say it is. A non-text file found in `inbox/` (a PDF, say) is read like any other capture but not archived; triage reports it so you can move it out of the archive. The output is a summary: captures processed and where they went, links added, open questions.
+The first step is the one that is easy to miss: **read every capture before touching anything**, because two captures an hour apart are often the same idea. The agent **rephrases but never adds** information. A one-line capture with no context does not become a new note. Titles and file names describe the content, not the date or the origin. The origin goes in `source` ([§4](#4-note-format)): triage takes it from the capture's `source:` line ([§7](#7-capturing-from-the-shell)) or, for a file you hand over, from what you say it is. A non-text file found in `inbox/` (a PDF, say) is read like any other capture but not archived; triage reports it so you can move it out of the archive. The output is a summary: captures processed and where they went, links added, open questions.
 
 
 ### 6.2 Ask
@@ -346,7 +346,7 @@ Three commands run the same workflow:
 
 A saved answer goes to `answers/YYYY-MM-DD-topic.md`, in plain Markdown with LaTeX math, to open in VS Code's preview (Mermaid diagrams need an extension) or convert with pandoc. It keeps its citations, and it is versioned and reviewed with `git diff` like any other change.
 
-Saved answers are worth reusing because they can hold a reworking the notes lack: a connection between notes, a clearer explanation, a worked example. `/ask-all` treats them as a **secondary source**: it cites them as saved answers, never lets them override a note, and ignores their general-knowledge part, so the agent never cites its own guesses. It does not save by default: an answer built on saved answers, saved in turn, would feed the next `/ask-all` with a reworking of a reworking. What deserves to last goes into the notes through `distill` (§6.4).
+Saved answers are worth reusing because they can hold a reworking the notes lack: a connection between notes, a clearer explanation, a worked example. `/ask-all` treats them as a **secondary source**: it cites them as saved answers, never lets them override a note, and ignores their general-knowledge part, so the agent never cites its own guesses. It does not save by default: an answer built on saved answers, saved in turn, would feed the next `/ask-all` with a reworking of a reworking. What deserves to last goes into the notes through `distill` ([§6.4](#64-distill)).
 
 
 ### 6.3 Connect
@@ -357,7 +357,7 @@ Saved answers are worth reusing because they can hold a reworking the notes lack
 - **orphan notes**, which no other note links to. `journal/` is exempt, since daily notes are entry points by nature, though links *from* the journal count. Links from `archive/` do not count;
 - **missing links** between notes about the same concepts. The bar is high: propose a link only if one note really helps to understand the other. A shared tag is not enough.
 
-It is cautious: it presents its findings and waits for confirmation; it proposes fixes for broken links without applying them, and adds confirmed links in both directions. The first two checks are mechanical, so [`bin/links`](https://github.com/matteogiorgi/second-brain/blob/main/template/core/bin/links) runs them over the whole archive without an agent, ignoring links inside code blocks:
+It is cautious: it presents its findings and waits for confirmation; it proposes fixes for broken links without applying them, and adds confirmed links in both directions. The first two checks are mechanical, so [`bin/links`](https://github.com/matteogiorgi/second-brain/blob/main/template/core/bin/links) runs them on every note outside `archive/`, without an agent, ignoring links inside code blocks:
 
 ```
 broken: notes/lonely.md -> ../notes/missing.md
@@ -371,7 +371,7 @@ The third check needs judgement, and that is where the agent earns its place.
 
 A saved answer has a short life: `/ask-save` writes it to `answers/`, `/ask-all` reads it, and `distill` brings what it adds into the notes, then archives it. `distill` reads each answer (all of `answers/`, or the ones you name) together with the notes it cites, and sorts its content into three kinds:
 
-- **restated**: what the cited notes already say, or what comes from another saved answer (distilled with that one). It is discarded;
+- **restated**: what the cited notes already say, or what comes from another saved answer (it gets distilled from that answer instead). It is discarded;
 - **reworked**: what the answer builds from the notes without being in any of them, such as a connection between notes, a clearer explanation, a worked example. These are the candidates;
 - **general knowledge**: the part marked as such. It becomes a candidate only if you confirm it.
 
@@ -388,7 +388,7 @@ Capturing must cost as little as possible: **no decisions and no dependencies**.
 
 > **A text file that appears in `inbox/` is a capture.**
 
-Any way of dropping a file there counts: a sync from your phone, a saved email, a manual copy. Captures need no frontmatter and get timestamped names. A capture may start with a line naming its source, `source: <kind>, <description>`, which triage turns into the note's `source` (§4). The line is optional: without it, the capture counts as your own thought. The `.gitignore` makes git track only `.md` and `.txt` files in `inbox/`, so a stray PDF never ends up in a commit.
+Any way of dropping a file there counts: a sync from your phone, a saved email, a manual copy. Captures need no frontmatter and no particular name. A capture may start with a line naming its source, `source: <kind>, <description>`, which triage turns into the note's `source` ([§4](#4-note-format)). The line is optional: without it, the capture counts as your own thought. The `.gitignore` makes git track only `.md` and `.txt` files in `inbox/`, so a stray PDF never ends up in a commit.
 
 [`bin/capture`](https://github.com/matteogiorgi/second-brain/blob/main/template/core/bin/capture) is simply the most convenient way to honour that contract:
 
@@ -406,7 +406,7 @@ capture
 capture -s "lecture, Stochastic methods, 2026-09-25" "the rate is the mean number of events per unit time"
 ```
 
-It names each file with date, time and PID, so two captures in the same second never collide. An empty capture (editor closed without saving, empty pipe, blank text) leaves no file behind. With `-s`, it rejects a kind of source that is not in the list of §4, so a typo never reaches the notes; the list is repeated in the script, so a new kind must be added to `AGENTS.md`, `bin/capture` and, if you have it, `notes/note-format.md`. If no archive can be found, it stops with an error instead of creating an inbox in the wrong place. From Vim, `:'<,'>w !capture` captures the visual selection.
+It names each file with date, time and PID, so two captures in the same second never collide. An empty capture (editor closed without saving, empty pipe, blank text) leaves no file behind. With `-s`, it rejects a kind of source that is not in the list of [§4](#4-note-format), so a typo never reaches the notes; the list is repeated in the script, so a new kind must be added to `AGENTS.md`, `bin/capture` and, if you have it, `notes/note-format.md`. If no archive can be found, it stops with an error instead of creating an inbox in the wrong place. From Vim, `:'<,'>w !capture` captures the visual selection.
 
 
 
@@ -415,7 +415,7 @@ It names each file with date, time and PID, so two captures in the same second n
 
 Everything editor-specific lives in `editors/` or in your own dotfiles. Deleting `editors/` must not break anything.
 
-**Vim.** The natural setup is Tmux with two panes, Vim in one and the agent in the other, both inside the archive. [`editors/vim/brain.vim`](https://github.com/matteogiorgi/second-brain/blob/main/template/vim/editors/vim/brain.vim) is a few lines, loaded from your vimrc with `execute 'source' $BRAIN . '/editors/vim/brain.vim'`:
+**Vim.** The natural setup is tmux with two panes, Vim in one and the agent in the other, both inside the archive. [`editors/vim/brain.vim`](https://github.com/matteogiorgi/second-brain/blob/main/template/vim/editors/vim/brain.vim) is a few lines, loaded from your vimrc with `execute 'source' $BRAIN . '/editors/vim/brain.vim'`. Together with Vim's defaults, it gives:
 
 - `autoread` plus `checktime` on `FocusGained`, `BufEnter` and `CursorHold` reload a note the agent rewrote in the other pane. Inside tmux this needs `set -g focus-events on` in `~/.tmux.conf`;
 - `textwidth=72`, applied only to the archive's notes;
@@ -529,7 +529,7 @@ The reason behind all of them is the same. Tools change faster than ideas, and A
 
 - **`AGENTS.md`**, the open convention for agent instructions: <https://agents.md>
 - **Claude Code**, memory and `@` imports: <https://code.claude.com/docs/en/memory>
-- **Claude Code**, custom slash commands: <https://code.claude.com/docs/en/slash-commands>
+- **Claude Code**, skills and custom commands: <https://code.claude.com/docs/en/skills>
 - **CommonMark**: <https://commonmark.org>
 - **Hexagonal architecture**, Alistair Cockburn's original article: <https://alistair.cockburn.us/hexagonal-architecture/>
 - **PARA**: Tiago Forte, *Building a Second Brain* (2022)

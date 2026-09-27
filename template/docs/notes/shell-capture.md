@@ -26,7 +26,7 @@ honour it. Any other way of dropping a file into `inbox/` (a sync from
 the phone, a saved email, a file copied by hand) is a valid capture.
 
 Files in `inbox/` are exempt from the [format](note-format.md): no
-frontmatter, timestamped names. They become real notes only after
+frontmatter, no particular name. They become real notes only after
 triage. A capture may start with a line naming its source, such as
 `source: lecture, Stochastic methods, 2026-09-25`: triage turns it into
 the note's `source` (see the [format](note-format.md)); without it, the
